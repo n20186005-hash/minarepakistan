@@ -1,0 +1,181 @@
+---
+import '../styles/global.css';
+
+const site = Astro.site;
+const canonical = site ? new URL(Astro.url.pathname, site).toString() : undefined;
+const ogImage = site ? new URL('/favicon-180.png', site).toString() : undefined;
+
+const attractionLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TouristAttraction',
+  name: 'اندرون لاہور (Walled City of Lahore)',
+  description: 'لاہور کا تاریخی فصیل بند شہر، مغلیہ دور کی گلیوں، بازاروں، مساجد، دروازوں اور ثقافتی ورثے کا زندہ مرکز۔',
+  ...(canonical ? { url: canonical } : {}),
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Lahore',
+    postalCode: '54000',
+    addressRegion: 'Punjab',
+    addressCountry: 'PK'
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: 31.58357, longitude: 74.31773 },
+  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], opens: '00:00', closes: '23:59' }],
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.4', reviewCount: '77', bestRating: '5' },
+  isAccessibleForFree: true
+};
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    ['اندرون لاہور دیکھنے کے لیے کتنا وقت رکھنا چاہیے؟','کم از کم آدھا دن رکھیں۔ اگر لاہور قلعہ، بادشاہی مسجد، وزیر خان مسجد اور شاہی حمام بھی دیکھنے ہوں تو پورا دن زیادہ بہتر رہتا ہے۔'],
+    ['کیا اندرون لاہور میں داخلے کی فیس ہے؟','قدیم شہر کی عام گلیوں اور بازاروں میں داخلہ عمومی طور پر مفت ہے۔ قلعہ، حمام، میوزیم، خصوصی دوروں اور بعض یادگاروں کے الگ ٹکٹ ہو سکتے ہیں۔'],
+    ['کہاں سے آغاز کرنا بہتر ہے؟','پیدل تاریخی راستے کے لیے دہلی دروازہ ایک عمدہ آغاز ہے؛ دوسری طرف فورٹ روڈ فوڈ اسٹریٹ، روشنائی دروازہ، بادشاہی مسجد اور لاہور قلعہ ایک مضبوط کلسٹر بناتے ہیں۔'],
+    ['پارکنگ کہاں مل سکتی ہے؟','تنگ تاریخی گلیوں میں گاڑی لے جانا عملی نہیں۔ فورٹ روڈ فوڈ اسٹریٹ پارکنگ سرکاری گائیڈڈ ٹورز کے لیے بھی استعمال ہونے والا معروف اجتماع مقام ہے۔'],
+    ['کون سا وقت فوٹوگرافی کے لیے بہتر ہے؟','صبح سویرے نرم روشنی اور کم ہجوم کے لیے بہترین ہے؛ شام کو فورٹ روڈ اور تاریخی عمارتوں کے گرد ماحول زیادہ زندہ دل ہو جاتا ہے۔']
+  ].map(([name,text]) => ({ '@type':'Question', name, acceptedAnswer:{ '@type':'Answer', text } }))
+};
+---
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>اندرون لاہور — گلیوں، دروازوں اور مغلیہ ورثے کا سفر</title>
+  <meta name="description" content="اندرون لاہور کی اردو رہنمائی: دہلی دروازہ، وزیر خان مسجد، شاہی حمام، بادشاہی مسجد، لاہور قلعہ، کھانے، پارکنگ، سفر اور عملی معلومات۔" />
+  {canonical && <link rel="canonical" href={canonical} />}
+  <meta property="og:title" content="اندرون لاہور — زندہ ورثے کا شہر" />
+  <meta property="og:description" content="تیرہ تاریخی دروازوں کی روایت، شاہی گزرگاہ، بازار، مساجد اور لاہور کی اصل شہری روح۔" />
+  <meta property="og:type" content="website" />
+  {canonical && <meta property="og:url" content={canonical} />}
+  {ogImage && <meta property="og:image" content={ogImage} />}
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/favicon-180.png" />
+  <script type="application/ld+json" set:html={JSON.stringify(attractionLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HXM22WWPKP"></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments)}
+    gtag('js', new Date());
+    gtag('config', 'G-HXM22WWPKP');
+  </script>
+</head>
+<body>
+<div class="ornament"></div>
+<header class="hero">
+  <nav class="nav">
+    <div class="shell nav-inner">
+      <a class="brand" href="#top" aria-label="اندرون لاہور ہوم">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1f1713"/><path d="M10 51V25h8v-8h8v8h12v-8h8v8h8v26H10Zm10 0V35h24v16" fill="#c99a48"/><path d="M26 51V39h12v12" fill="#8e3b24"/></svg>
+        <span>اندرون لاہور</span>
+      </a>
+      <div class="nav-links"><a href="#route">تاریخی راستہ</a><a href="#plan">عملی معلومات</a><a href="#food">کھانے</a><a href="#map">نقشہ</a><a href="#faq">سوالات</a></div>
+    </div>
+  </nav>
+  <div class="shell hero-copy" id="top">
+    <div class="kicker" style="color:#efc981">WALLED CITY OF LAHORE · لاہور 54000</div>
+    <h1>گلی جہاں تاریخ<br/>ابھی بھی رہتی ہے</h1>
+    <p>دہلی دروازے سے شاہی گزرگاہ، وزیر خان مسجد، رنگین بازاروں اور روشنائی دروازے تک — اندرون لاہور عمارتوں کا مجموعہ نہیں، ایک زندہ شہری روایت ہے۔</p>
+    <a class="button" href="#route">سفر شروع کریں ←</a>
+  </div>
+</header>
+
+<section class="facts shell">
+  <div class="card mini-grid">
+    <div class="fact"><span>تاریخی رقبہ</span><strong>تقریباً 2.6 مربع کلومیٹر</strong><small>سرکاری WCLA تعارف کے مطابق</small></div>
+    <div class="fact"><span>تاریخی شناخت</span><strong>13 دروازوں کا شہر</strong><small>آج چند دروازے محفوظ یا ازسرنو تعمیر شدہ ہیں</small></div>
+    <div class="fact"><span>مرکزی تجربہ</span><strong>پیدل + رکشا</strong><small>تنگ گلیاں، بازار اور مختصر فاصلے</small></div>
+  </div>
+</section>
+
+<section class="section shell">
+  <div class="split">
+    <div>
+      <div class="kicker">شہر کے اندر ایک اور شہر</div>
+      <h2 class="section-title">فصیل، بازار، مسجدیں اور یادداشت</h2>
+      <p>مغلیہ بادشاہ اکبر کے دور میں لاہور کے آباد حصے کو اینٹوں کی بلند فصیل اور دروازوں سے مضبوط کیا گیا۔ بعد کی صدیوں میں مغل، سکھ اور برطانوی ادوار نے اس کے شہری نقشے اور عمارتوں پر اپنی اپنی تہیں چھوڑیں۔ آج یہ علاقہ حویلیوں، بازاروں، عبادت گاہوں، کھانوں اور روایتی دستکاری کے ساتھ ایک زندہ ورثہ ہے۔</p>
+      <div><span class="chip">مغلیہ فن تعمیر</span><span class="chip">شاہی گزرگاہ</span><span class="chip">قدیم بازار</span><span class="chip">لاہوری کھانے</span></div>
+    </div>
+    <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Wazir_khan_mosque_entry.jpg/1280px-Wazir_khan_mosque_entry.jpg" alt="وزیر خان مسجد، اندرون لاہور" loading="lazy"/><figcaption class="credits">وزیر خان مسجد — تصویر: Shahbaz Aslam، CC BY-SA 4.0، Wikimedia Commons</figcaption></figure>
+  </div>
+</section>
+
+<section class="section dark" id="route">
+  <div class="shell">
+    <div class="kicker" style="color:#e5b55f">ایک دن کا بہترین تاریخی راستہ</div><h2 class="section-title">دروازے سے شاہی منظر تک</h2>
+    <div class="route">
+      <div class="card"><b>01 — دہلی دروازہ</b><p>قدیم شہر میں داخل ہونے کا ڈرامائی آغاز۔ صبح کے وقت کم ہجوم اور بہتر روشنی ملتی ہے۔</p></div>
+      <div class="card"><b>02 — شاہی حمام</b><p>دہلی دروازے کے قریب مغلیہ دور کا حمام؛ فریسکو اور شہری زندگی کی تاریخ کے لیے اہم مقام۔</p></div>
+      <div class="card"><b>03 — وزیر خان مسجد</b><p>کاشی کاری، نقش و نگار اور صحن کی وجہ سے لاہور کی سب سے نفیس مغلیہ مسجدوں میں شمار ہوتی ہے۔</p></div>
+      <div class="card"><b>04 — قلعہ و بادشاہی مسجد</b><p>فورٹ روڈ کی سمت اختتام کریں؛ لاہور قلعہ، حضوری باغ، روشنائی دروازہ اور بادشاہی مسجد ایک ہی تاریخی منظرنامہ بناتے ہیں۔</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section shell">
+  <div class="gallery">
+    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/View_of_Delhi_Gate%2C_Lahore.jpg/1280px-View_of_Delhi_Gate%2C_Lahore.jpg" alt="صبح کے وقت دہلی دروازہ" loading="lazy"/>
+    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Delhi_gate_Lahore.jpg/1280px-Delhi_gate_Lahore.jpg" alt="رات میں دہلی دروازے کا اندرونی حصہ" loading="lazy"/>
+    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt="بادشاہی مسجد لاہور" loading="lazy"/>
+  </div>
+  <p class="credits">تصاویر: Umaimaumi (CC BY-SA 4.0)، Mubeenakram (CC BY-SA 4.0)، Ujphotos (CC BY-SA 3.0) — Wikimedia Commons۔ اصل فائل اور لائسنس تفصیل IMAGE-CREDITS.md میں درج ہے۔</p>
+</section>
+
+<section class="section" id="plan" style="background:#eadcc3">
+  <div class="shell">
+    <div class="kicker">اپنا دن بہتر بنائیں</div><h2 class="section-title">عملی معلومات</h2>
+    <div class="info-grid">
+      <div class="card"><h3>ٹکٹ / اخراجات</h3><p>اندرون لاہور کی عام گلیوں اور بازاروں میں داخلہ عمومی طور پر مفت ہے۔ اندر موجود یادگاروں کے الگ نرخ ہیں؛ مثال کے طور پر شاہی حمام کے سرکاری نرخ طالب علم، مقامی اور غیر ملکی زائرین کے لیے الگ ہیں۔ خصوصی WCLA ٹورز بھی علیحدہ ٹکٹ پر ہوتے ہیں۔</p></div>
+      <div class="card"><h3>بہترین وقت / دورانیہ</h3><p><strong>صبح:</strong> فوٹوگرافی اور کم ہجوم۔ <strong>شام:</strong> فورٹ روڈ اور کھانے کے لیے زیادہ زندہ ماحول۔ صرف دہلی دروازہ–وزیر خان روٹ کے لیے 2–3 گھنٹے؛ قلعہ اور بادشاہی مسجد سمیت آدھا یا پورا دن رکھیں۔</p></div>
+      <div class="card"><h3>پارکنگ</h3><p>قدیم گلیوں میں نجی گاڑی لے جانا مناسب نہیں۔ فورٹ روڈ فوڈ اسٹریٹ پارکنگ WCLA کے متعدد سرکاری ٹورز کا اجتماع مقام بھی رہی ہے؛ یہاں سے پیدل یا رکشا کے ذریعے تاریخی حصوں تک جانا آسان رہتا ہے۔</p></div>
+      <div class="card"><h3>تفصیلی آمدورفت</h3><p>رائیڈ ہیلنگ/ٹیکسی سے <strong>Delhi Gate</strong> یا <strong>Fort Road Food Street</strong> بطور ڈراپ آف پوائنٹ دیں۔ اندرونی سڑکیں تنگ ہیں، اس لیے آخری حصہ پیدل یا مقامی رکشا سے طے کریں۔ نماز اور مصروف بازار کے اوقات میں اضافی وقت رکھیں۔</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section shell" id="food">
+  <div class="split">
+    <div>
+      <div class="kicker">لاہور کو چکھیں</div><h2 class="section-title">周边美食 · اردگرد کھانے</h2>
+      <p><strong>فورٹ روڈ فوڈ اسٹریٹ:</strong> تاریخی عمارتوں کے بیچ روایتی لاہوری کھانوں کا معروف کلسٹر۔</p>
+      <p><strong>ٹیکسالی گیٹ:</strong> WCLA کی معلومات میں پائے، حلوہ پوری اور روایتی ناشتے کے لیے خاص طور پر مشہور بتایا گیا ہے؛ فاضل دین/پھجے کے پائے اور تاج محل حلوہ پوری جیسے نام اس علاقے سے وابستہ ہیں۔</p>
+      <p><strong>بازاروں میں:</strong> لسی، کباب، چنے، نان اور مٹھائی کے چھوٹے مقامی اسٹال تجربے کا حصہ ہیں۔ صفائی اور تازگی دیکھ کر انتخاب کریں۔</p>
+    </div>
+    <div class="card" style="padding:1.8rem"><h3>قریب کے اہم مقامات</h3><p>وزیر خان مسجد · شاہی حمام · لاہور قلعہ · بادشاہی مسجد · حضوری باغ · روشنائی دروازہ · فقیـر خانہ میوزیم</p><div class="rule"></div><p>اگر آپ پہلی بار آ رہے ہیں تو ایک ہی دن میں بہت زیادہ گلیاں کور کرنے کے بجائے ایک تاریخی محور چنیں؛ اندرون لاہور کی اصل کشش اس کی رفتار، بازار اور روزمرہ زندگی میں ہے۔</p></div>
+  </div>
+</section>
+
+<section class="section dark" id="map">
+  <div class="shell">
+    <div class="kicker" style="color:#e5b55f">نقشہ</div><h2 class="section-title">اندرون لاہور کہاں ہے؟</h2>
+    <div class="map-wrap card"><iframe title="اندرون لاہور گوگل نقشہ" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Walled%20City%20of%20Lahore%2C%20Lahore%2C%2054000%2C%20Pakistan&output=embed&hl=ur"></iframe></div>
+    <p><a class="button alt" href="https://maps.app.goo.gl/wK9FiYQgEEFcchqu9" rel="noopener noreferrer">Google Maps میں کھولیں</a></p>
+  </div>
+</section>
+
+<section class="section shell" id="faq">
+  <div class="kicker">FAQ</div><h2 class="section-title">اکثر پوچھے جانے والے سوالات</h2>
+  <details open><summary>اندرون لاہور دیکھنے کے لیے کتنا وقت رکھنا چاہیے؟</summary><p>کم از کم آدھا دن رکھیں۔ اگر لاہور قلعہ، بادشاہی مسجد، وزیر خان مسجد اور شاہی حمام بھی دیکھنے ہوں تو پورا دن زیادہ بہتر رہتا ہے۔</p></details>
+  <details><summary>کیا اندرون لاہور میں داخلے کی فیس ہے؟</summary><p>قدیم شہر کی عام گلیوں اور بازاروں میں داخلہ عمومی طور پر مفت ہے۔ قلعہ، حمام، میوزیم، خصوصی دوروں اور بعض یادگاروں کے الگ ٹکٹ ہو سکتے ہیں۔</p></details>
+  <details><summary>کہاں سے آغاز کرنا بہتر ہے؟</summary><p>پیدل تاریخی راستے کے لیے دہلی دروازہ ایک عمدہ آغاز ہے؛ فورٹ روڈ کی طرف روشنائی دروازہ، بادشاہی مسجد اور لاہور قلعہ دوسرا مضبوط کلسٹر ہے۔</p></details>
+  <details><summary>کیا پارکنگ آسان ہے؟</summary><p>اندرونی گلیوں میں نہیں۔ فورٹ روڈ فوڈ اسٹریٹ پارکنگ زیادہ عملی انتخاب ہے اور سرکاری گائیڈڈ ٹورز کے لیے بھی اجتماع مقام کے طور پر استعمال ہوئی ہے۔</p></details>
+  <details><summary>کیا اوقات ہر جگہ ایک جیسے ہیں؟</summary><p>نہیں۔ قدیم شہر کی عوامی گلیاں اور بازار ایک شہری علاقہ ہیں، لیکن مسجد، حمام، قلعہ، میوزیم اور گائیڈڈ ٹور کے اوقات الگ ہو سکتے ہیں؛ روانگی سے پہلے متعلقہ مقام کی تازہ معلومات دیکھیں۔</p></details>
+</section>
+
+<section class="section" style="background:#d8c29e">
+  <div class="shell">
+    <h2 class="section-title">ماخذ اور تصویری حقوق</h2>
+    <p>تاریخی و عملی معلومات Walled City of Lahore Authority، Punjab Auqaf / Lahore District اور معتبر نقشہ/جغرافیائی حوالوں سے مرتب کی گئی ہیں۔ ریٹنگ 4.4/5 (77 Google reviews کا mirrored snapshot) وقت کے ساتھ بدل سکتی ہے؛ اسے مستقل سرکاری درجہ بندی نہ سمجھیں۔</p>
+    <p class="credits">فوٹو لائسنس: Delhi gate Lahore — Mubeenakram, CC BY-SA 4.0؛ View of Delhi Gate, Lahore — Umaimaumi, CC BY-SA 4.0؛ Wazir khan mosque entry — Shahbaz Aslam, CC BY-SA 4.0؛ Badshahi Mosque, Lahore. King's Mosque — Ujphotos, CC BY-SA 3.0۔</p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="shell"><div><img src="/logo.svg" alt="اندرون لاہور لوگو" width="240" height="72"/><p>یہ ایک غیر سرکاری معلوماتی ویب سائٹ ہے اور Walled City of Lahore Authority یا کسی سرکاری ادارے کی نمائندگی نہیں کرتی۔</p></div><div><b>فوری لنکس</b><p><a href="#route">تاریخی راستہ</a> · <a href="#plan">عملی معلومات</a> · <a href="#faq">FAQ</a></p></div></div>
+</footer>
+</body>
+</html>
