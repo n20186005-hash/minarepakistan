@@ -1,55 +1,279 @@
 ---
 import '../styles/global.css';
 
-const site = Astro.site;
-const canonical = site ? new URL(Astro.url.pathname, site).toString() : undefined;
-const ogImage = site ? new URL('/favicon-180.png', site).toString() : undefined;
+const DOMAIN = 'minarepakistan.com';
+const LAT = 31.5925;
+const LNG = 74.3146;
 
+const siteUrl = Astro.site ?? new URL(`https://${DOMAIN}`);
+const canonical = new URL(Astro.url.pathname, siteUrl).toString();
+const ogImage = new URL('/images/hero.jpg', siteUrl).toString();
+
+const d = {
+  fullName: 'Minar-e-Pakistan',
+  shortName: 'Minar-e-Pakistan',
+  city: 'Lahore',
+  region: 'Punjab',
+  country: 'Pakistan',
+  countryCode: 'PK',
+  postal: '54000',
+  lat: 31.5925,
+  lng: 74.3146,
+  mapsUrl: 'https://maps.app.goo.gl/wK9FiYQgEEFcchqu9',
+  mapsEmbed: 'https://www.google.com/maps?q=Minar-e-Pakistan,Lahore,Pakistan&output=embed',
+  nearby1: 'Lahore Fort',
+  nearby2: 'Badshahi Mosque',
+  govtUrl: 'https://www.tourism.gov.pk/',
+  rating: 4.6,
+  reviews: 20475,
+  syncMonth: '2026 年 9 月'
+};
+
+/* ----------------------------- Weather (server-side fetch + cache) ----------------------------- */
+type WxDay = { dow: string; tmax: number; tmin: number; pop: number; icon: string; label: string };
+type WxAdvice = { dress: string[]; act: string[]; items: string[]; risks: string[] };
+type WxData = {
+  current: {
+    temperature_2m: number; apparent_temperature: number; relative_humidity_2m: number;
+    wind_speed_10m: number; wind_direction_10m: number; weather_code: number; precipitation: number;
+    windLevel: number; windText: string; uv: number;
+  };
+  sunrise: string;
+  sunset: string;
+  daily: WxDay[];
+  advice: WxAdvice;
+};
+
+function wmo(code: number) {
+  if (code === 0) return 'clear';
+  if (code <= 2) return 'partly';
+  if (code === 3) return 'cloud';
+  if (code === 45 || code === 48) return 'fog';
+  if (code >= 51 && code <= 57) return 'rain';
+  if (code >= 61 && code <= 67) return 'rain';
+  if (code >= 71 && code <= 77) return 'snow';
+  if (code >= 80 && code <= 82) return 'rain';
+  if (code >= 85 && code <= 86) return 'snow';
+  if (code >= 95) return 'storm';
+  return 'cloud';
+}
+function wmoLabel(code: number) {
+  if (code === 0) return 'Clear';
+  if (code === 1) return 'Mainly clear';
+  if (code === 2) return 'Partly cloudy';
+  if (code === 3) return 'Overcast';
+  if (code === 45 || code === 48) return 'Fog';
+  if (code >= 51 && code <= 57) return 'Drizzle';
+  if (code >= 61 && code <= 67) return 'Rain';
+  if (code >= 71 && code <= 77) return 'Snow';
+  if (code >= 80 && code <= 82) return 'Showers';
+  if (code >= 85 && code <= 86) return 'Snow showers';
+  if (code >= 95) return code >= 96 ? 'Thunderstorm with hail' : 'Thunderstorm';
+  return 'Cloudy';
+}
+function fmtTime(iso: string) {
+  const t = (iso.split('T')[1] || '00:00');
+  const [h, m] = t.split(':').map(Number);
+  const ap = h >= 12 ? 'PM' : 'AM';
+  const h12 = ((h + 11) % 12) + 1;
+  return `${h12}:${String(m).padStart(2, '0')} ${ap}`;
+}
+function dow(iso: string) {
+  const [y, mo, da] = iso.split('T')[0].split('-').map(Number);
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(y, mo - 1, da)).getUTCDay()];
+}
+function windBeaufort(kmh: number): number {
+  const t = [1, 5, 11, 19, 28, 38, 49, 61, 74, 88, 102, 117];
+  let lvl = 0;
+  for (let i = 0; i < t.length; i++) if (kmh > t[i]) lvl = i + 1;
+  return lvl;
+}
+function compass(deg: number): string {
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  return dirs[Math.round(deg / 45) % 8];
+}
+function buildAdvice(o: {
+  curCode: number; tmax: number; tmin: number; pop: number; windLevel: number; uv: number; humidity: number;
+}): WxAdvice {
+  const dress: string[] = [];
+  const act: string[] = [];
+  const items: string[] = [];
+  const risks: string[] = [];
+
+  const isThunder = o.curCode >= 95;
+  const isHeavy = [65, 66, 67, 82, 95, 99].includes(o.curCode);
+  const isRain = (o.curCode >= 51 && o.curCode <= 67) || (o.curCode >= 80 && o.curCode <= 82);
+  const isLight = (o.curCode >= 51 && o.curCode <= 61) || o.curCode === 80;
+  const isSunny = o.curCode <= 1;
+  const isCloudy = o.curCode === 2 || o.curCode === 3;
+  const isFog = o.curCode === 45 || o.curCode === 48;
+  const diff = o.tmax - o.tmin;
+
+  if (o.tmax >= 32) dress.push('It is hot — avoid the midday sun and wear light, breathable clothing');
+  if (o.tmax <= 10) dress.push('Cold — bring a warm coat');
+  else if (diff > 8) dress.push('Big day-to-night temperature swing — bring a layer you can add or remove');
+  if (o.uv >= 5) dress.push('Strong UV — use sunscreen, sunglasses and a hat');
+  if (isHeavy) dress.push('Wet and windy — wear a waterproof jacket');
+  else if (isRain || o.pop >= 60) dress.push('Carry rain gear or a waterproof jacket');
+  if (o.windLevel >= 7) dress.push('Strong wind — secure your hat and avoid loose clothing');
+  if (isFog) dress.push('Low visibility — take care and keep warm');
+
+  if (isThunder) risks.push('Thunderstorm — avoid lightning: do not shelter under trees, stay away from high ground and open water');
+  if (isHeavy) {
+    risks.push('Heavy rain — avoid low-lying areas; some outdoor facilities may close');
+    act.push('Limit time outdoors; favour covered walkways and indoor exhibits');
+  }
+  if (o.pop >= 60) act.push('High chance of rain — plan indoor activities and keep rain gear handy');
+  if (isLight && !isHeavy) act.push('Light rain — paths may be slippery, watch your step');
+  if (o.tmax >= 32 && !isHeavy) act.push('Keep outdoor time short and avoid the midday heat');
+  if (isSunny) act.push('Clear and pleasant — great for outdoor visits; early morning and sunset are best for photos');
+  if (isCloudy) act.push('Soft light — ideal for photos and longer outdoor strolls');
+  if (isFog) act.push('Poor visibility — skip long-distance views and slow your pace');
+  if (o.windLevel >= 7) {
+    risks.push('High wind — stay clear of hoardings, high ground and open areas');
+    act.push('Elevated and waterside facilities may close — plan accordingly');
+  } else if (o.windLevel >= 5) act.push('Breezy — elevated or waterside facilities may pause; check ahead');
+
+  if (isHeavy) items.push('Raincoat (avoid long umbrellas in strong wind)');
+  else if (isRain || o.pop >= 60) items.push('Umbrella / raincoat');
+  if (o.tmax >= 32 || o.uv >= 5) items.push('Sunscreen');
+  if (o.uv >= 5) items.push('Sunglasses, sun hat');
+  if (o.tmax >= 32) items.push('Plenty of water, heat-relief items');
+  if (diff > 8 || o.tmax <= 15 || isHeavy) items.push('A jacket / light layer');
+  if (isFog) items.push('A mask');
+  if (o.humidity >= 75 && o.tmax >= 28) items.push('A sweat towel');
+
+  return { dress, act, items, risks };
+}
+
+let weatherCache: { ts: number; data: WxData } | null = null;
+const WX_TTL = 30 * 60 * 1000;
+
+async function getWeather(): Promise<WxData> {
+  const now = Date.now();
+  if (weatherCache && now - weatherCache.ts < WX_TTL) return weatherCache.data;
+  const url =
+    `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
+    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,precipitation` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset` +
+    `&timezone=auto&forecast_days=7`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!res.ok) throw new Error('wx ' + res.status);
+  const j: any = await res.json();
+  const c = j.current;
+  const curCode = c.weather_code as number;
+  const windLevel = windBeaufort(c.wind_speed_10m as number);
+  const windText = `${compass(c.wind_direction_10m as number)} ${windLevel}`;
+  const uv = (j.daily.uv_index_max[0] as number) ?? 0;
+  const daily: WxDay[] = (j.daily.time as string[]).map((t: string, i: number) => {
+    const code = j.daily.weather_code[i] as number;
+    return {
+      dow: dow(t),
+      tmax: j.daily.temperature_2m_max[i] as number,
+      tmin: j.daily.temperature_2m_min[i] as number,
+      pop: j.daily.precipitation_probability_max[i] as number,
+      icon: wmo(code),
+      label: wmoLabel(code)
+    };
+  });
+  const d0 = daily[0];
+  const advice = buildAdvice({
+    curCode,
+    tmax: d0.tmax,
+    tmin: d0.tmin,
+    pop: d0.pop,
+    windLevel,
+    uv,
+    humidity: c.relative_humidity_2m as number
+  });
+  const data: WxData = {
+    current: {
+      temperature_2m: c.temperature_2m,
+      apparent_temperature: c.apparent_temperature,
+      relative_humidity_2m: c.relative_humidity_2m,
+      wind_speed_10m: c.wind_speed_10m,
+      wind_direction_10m: c.wind_direction_10m,
+      weather_code: curCode,
+      precipitation: c.precipitation ?? 0,
+      windLevel,
+      windText,
+      uv
+    },
+    sunrise: j.daily.sunrise[0],
+    sunset: j.daily.sunset[0],
+    daily,
+    advice
+  };
+  weatherCache = { ts: now, data };
+  return data;
+}
+
+let weather: WxData | null = null;
+try {
+  weather = await getWeather();
+} catch {
+  weather = null;
+}
+
+/* ----------------------------- Structured data ----------------------------- */
 const attractionLd = {
   '@context': 'https://schema.org',
   '@type': 'TouristAttraction',
-  name: 'اندرون لاہور (Walled City of Lahore)',
-  description: 'لاہور کا تاریخی فصیل بند شہر، مغلیہ دور کی گلیوں، بازاروں، مساجد، دروازوں اور ثقافتی ورثے کا زندہ مرکز۔',
-  ...(canonical ? { url: canonical } : {}),
+  '@id': `https://${DOMAIN}/#attraction`,
+  name: d.fullName,
+  alternateName: [d.shortName, `${d.city} ${d.fullName}`],
+  description: `Comprehensive visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport, facilities and itineraries.`,
+  url: `https://${DOMAIN}`,
+  image: [ogImage],
+  isAccessibleForFree: true,
   address: {
     '@type': 'PostalAddress',
-    addressLocality: 'Lahore',
-    postalCode: '54000',
-    addressRegion: 'Punjab',
-    addressCountry: 'PK'
+    streetAddress: d.fullName,
+    addressLocality: d.city,
+    addressRegion: d.region,
+    postalCode: d.postal,
+    addressCountry: d.countryCode
   },
-  geo: { '@type': 'GeoCoordinates', latitude: 31.58357, longitude: 74.31773 },
-  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'], opens: '00:00', closes: '23:59' }],
-  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.4', reviewCount: '77', bestRating: '5' },
-  isAccessibleForFree: true
+  geo: { '@type': 'GeoCoordinates', latitude: d.lat, longitude: d.lng },
+  hasMap: d.mapsUrl,
+  sameAs: [d.mapsUrl, d.govtUrl]
 };
 
 const faqLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
-    ['اندرون لاہور دیکھنے کے لیے کتنا وقت رکھنا چاہیے؟','کم از کم آدھا دن رکھیں۔ اگر لاہور قلعہ، بادشاہی مسجد، وزیر خان مسجد اور شاہی حمام بھی دیکھنے ہوں تو پورا دن زیادہ بہتر رہتا ہے۔'],
-    ['کیا اندرون لاہور میں داخلے کی فیس ہے؟','قدیم شہر کی عام گلیوں اور بازاروں میں داخلہ عمومی طور پر مفت ہے۔ قلعہ، حمام، میوزیم، خصوصی دوروں اور بعض یادگاروں کے الگ ٹکٹ ہو سکتے ہیں۔'],
-    ['کہاں سے آغاز کرنا بہتر ہے؟','پیدل تاریخی راستے کے لیے دہلی دروازہ ایک عمدہ آغاز ہے؛ دوسری طرف فورٹ روڈ فوڈ اسٹریٹ، روشنائی دروازہ، بادشاہی مسجد اور لاہور قلعہ ایک مضبوط کلسٹر بناتے ہیں۔'],
-    ['پارکنگ کہاں مل سکتی ہے؟','تنگ تاریخی گلیوں میں گاڑی لے جانا عملی نہیں۔ فورٹ روڈ فوڈ اسٹریٹ پارکنگ سرکاری گائیڈڈ ٹورز کے لیے بھی استعمال ہونے والا معروف اجتماع مقام ہے۔'],
-    ['کون سا وقت فوٹوگرافی کے لیے بہتر ہے؟','صبح سویرے نرم روشنی اور کم ہجوم کے لیے بہترین ہے؛ شام کو فورٹ روڈ اور تاریخی عمارتوں کے گرد ماحول زیادہ زندہ دل ہو جاتا ہے۔']
-  ].map(([name,text]) => ({ '@type':'Question', name, acceptedAnswer:{ '@type':'Answer', text } }))
+    [`Where is ${d.fullName} located?`, `${d.fullName} is located inside Iqbal Park in the Walled City of ${d.city}, ${d.region}, ${d.country}, near ${d.nearby1} and ${d.nearby2}.`],
+    [`Is ${d.shortName} free to visit?`, `Yes, ${d.fullName} is a public national monument and is free to visit year-round. A small ticket may apply for some facilities within the surrounding Iqbal Park grounds.`],
+    [`What is ${d.fullName}?`, `${d.fullName} is the national monument of ${d.country}, built to commemorate the Lahore Resolution of 1940 that paved the way for an independent state.`],
+    [`When was ${d.fullName} built?`, `The foundation stone was laid on 23 March 1940 (the date of the Lahore Resolution), and the monument was completed between 1960 and 1968.`],
+    [`What are the best times to visit ${d.shortName}?`, `The cooler, clearer months from late October to March are the most comfortable. Mornings and after sunset are the most pleasant parts of the day in every season.`],
+    [`How do I reach ${d.fullName}?`, `It sits inside Iqbal Park in the Walled City of ${d.city}. App-based ride-hailing or metered taxis can drop you near the park gates; the final walk to the monument is on foot through the park.`],
+    [`What other landmarks are nearby?`, `Within walking distance you will find ${d.nearby1}, ${d.nearby2}, the Walled City of ${d.city}, Wazir Khan Mosque and the Shahi Hammam.`],
+    [`What is the weather like in ${d.city}?`, `${d.city} has a humid subtropical climate: very hot pre-monsoon summers (May–June), a warm monsoon (July–September), and mild, dry winters (December–February) that can bring seasonal smog.`],
+    [`Is parking available at ${d.shortName}?`, `Designated car and motorcycle parking areas are available inside Iqbal Park; the narrow old-city streets around the Walled City fill up quickly, so allow extra time.`],
+    [`How much time should I plan for a visit?`, `A focused monument-and-park visit takes about half a day; a full day lets you combine it with the Walled City, Badshahi Mosque and Lahore Fort.`]
+  ].map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } }))
 };
 ---
+
 <!doctype html>
-<html lang="ur" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>اندرون لاہور — گلیوں، دروازوں اور مغلیہ ورثے کا سفر</title>
-  <meta name="description" content="اندرون لاہور کی اردو رہنمائی: دہلی دروازہ، وزیر خان مسجد، شاہی حمام، بادشاہی مسجد، لاہور قلعہ، کھانے، پارکنگ، سفر اور عملی معلومات۔" />
-  {canonical && <link rel="canonical" href={canonical} />}
-  <meta property="og:title" content="اندرون لاہور — زندہ ورثے کا شہر" />
-  <meta property="og:description" content="تیرہ تاریخی دروازوں کی روایت، شاہی گزرگاہ، بازار، مساجد اور لاہور کی اصل شہری روح۔" />
+  <title>{d.fullName} ({d.city}) - Visitor Guide &amp; Location</title>
+  <meta name="description" content={`Discover ${d.fullName}, the iconic landmark in ${d.city}, ${d.region}, ${d.country}. View live weather, transport options, visitor facilities, seasonal tips and itineraries.`} />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:title" content={`${d.fullName} - ${d.city} Travel Guide`} />
+  <meta property="og:description" content={`Official visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport and itineraries.`} />
+  <meta property="og:url" content={canonical} />
   <meta property="og:type" content="website" />
-  {canonical && <meta property="og:url" content={canonical} />}
-  {ogImage && <meta property="og:image" content={ogImage} />}
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:alt" content={`${d.fullName} in ${d.city}`} />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#8e3b24" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon-32.png" sizes="32x32" />
   <link rel="icon" href="/favicon-16.png" sizes="16x16" />
@@ -65,117 +289,335 @@ const faqLd = {
   </script>
 </head>
 <body>
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="w-clear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+    <circle cx="12" cy="12" r="4"/><g><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.5" y2="4.5"/></g>
+  </symbol>
+  <symbol id="w-partly" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="3"/><line x1="8" y1="2" x2="8" y2="4"/><line x1="2" y1="8" x2="4" y2="8"/><line x1="3.8" y1="3.8" x2="5.2" y2="5.2"/><line x1="3.8" y1="12.2" x2="5.2" y2="10.8"/><path d="M7 19a3.5 3.5 0 0 1 .5-7 4.5 4.5 0 0 1 8.5-1A3 3 0 0 1 17 19Z"/>
+  </symbol>
+  <symbol id="w-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M7 19a4 4 0 0 1 .5-8 4.5 4.5 0 0 1 8.6-1A3.5 3.5 0 0 1 17 19Z"/>
+  </symbol>
+  <symbol id="w-fog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 15a4 4 0 0 1 .5-8 4.5 4.5 0 0 1 8.6-1A3.5 3.5 0 0 1 17 15"/><line x1="4" y1="18" x2="20" y2="18"/><line x1="6" y1="21" x2="18" y2="21"/>
+  </symbol>
+  <symbol id="w-rain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 15a4 4 0 0 1 .5-8 4.5 4.5 0 0 1 8.6-1A3.5 3.5 0 0 1 17 15"/><line x1="9" y1="18" x2="8" y2="21"/><line x1="13" y1="18" x2="12" y2="21"/><line x1="17" y1="18" x2="16" y2="21"/>
+  </symbol>
+  <symbol id="w-snow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 14a4 4 0 0 1 .5-8 4.5 4.5 0 0 1 8.6-1A3.5 3.5 0 0 1 17 14"/><line x1="12" y1="16" x2="12" y2="21"/><line x1="9.5" y1="18" x2="14.5" y2="19"/><line x1="14.5" y1="18" x2="9.5" y2="19"/>
+  </symbol>
+  <symbol id="w-storm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 14a4 4 0 0 1 .5-8 4.5 4.5 0 0 1 8.6-1A3.5 3.5 0 0 1 17 14"/><path d="M12 15l-2 4h3l-2 4"/>
+  </symbol>
+</svg>
 <div class="ornament"></div>
 <header class="hero">
   <nav class="nav">
     <div class="shell nav-inner">
-      <a class="brand" href="#top" aria-label="اندرون لاہور ہوم">
+      <a class="brand" href="#top" aria-label={`${d.fullName} home`}>
         <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1f1713"/><path d="M10 51V25h8v-8h8v8h12v-8h8v8h8v26H10Zm10 0V35h24v16" fill="#c99a48"/><path d="M26 51V39h12v12" fill="#8e3b24"/></svg>
-        <span>اندرون لاہور</span>
+        <span>{d.fullName}</span>
       </a>
-      <div class="nav-links"><a href="#route">تاریخی راستہ</a><a href="#plan">عملی معلومات</a><a href="#food">کھانے</a><a href="#map">نقشہ</a><a href="#faq">سوالات</a></div>
+      <div class="nav-links">
+        <a href="#about">About</a><a href="#weather">Weather</a><a href="#getting-there">Getting there</a>
+        <a href="#facilities">Facilities</a><a href="#seasons">Seasons</a><a href="#itineraries">Itineraries</a>
+        <a href="#history">History</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a><a href="#sources">Sources</a>
+      </div>
     </div>
   </nav>
   <div class="shell hero-copy" id="top">
-    <div class="kicker" style="color:#efc981">WALLED CITY OF LAHORE · لاہور 54000</div>
-    <h1>گلی جہاں تاریخ<br/>ابھی بھی رہتی ہے</h1>
-    <p>دہلی دروازے سے شاہی گزرگاہ، وزیر خان مسجد، رنگین بازاروں اور روشنائی دروازے تک — اندرون لاہور عمارتوں کا مجموعہ نہیں، ایک زندہ شہری روایت ہے۔</p>
-    <a class="button" href="#route">سفر شروع کریں ←</a>
+    <div class="kicker" style="color:#efc981">MINAR-E-PAKISTAN · {d.city} {d.postal}</div>
+    <h1>{d.fullName}<br/><span style="font-size:.5em;font-weight:700">The National Monument of {d.country}</span></h1>
+    <p>Welcome to <strong>{d.fullName}</strong>, the iconic national monument in the heart of <strong>{d.city}</strong>, <strong>{d.region}</strong>, <strong>{d.country}</strong> — a primary hub for travellers exploring the Walled City and its Mughal heritage.</p>
+    <a class="button" href="#about">Start the guide &rarr;</a>
   </div>
 </header>
 
 <section class="facts shell">
   <div class="card mini-grid">
-    <div class="fact"><span>تاریخی رقبہ</span><strong>تقریباً 2.6 مربع کلومیٹر</strong><small>سرکاری WCLA تعارف کے مطابق</small></div>
-    <div class="fact"><span>تاریخی شناخت</span><strong>13 دروازوں کا شہر</strong><small>آج چند دروازے محفوظ یا ازسرنو تعمیر شدہ ہیں</small></div>
-    <div class="fact"><span>مرکزی تجربہ</span><strong>پیدل + رکشا</strong><small>تنگ گلیاں، بازار اور مختصر فاصلے</small></div>
+    <div class="fact"><span>Location</span><strong>{d.city}, {d.region}</strong><small>Walled City of {d.city}, {d.postal}</small></div>
+    <div class="fact"><span>Built</span><strong>1960 – 1968</strong><small>Foundation laid 23 March 1940</small></div>
+    <div class="fact"><span>Entry</span><strong>Free · public</strong><small>Within Iqbal Park grounds</small></div>
   </div>
 </section>
 
-<section class="section shell">
+{weather && (
+  <section class="section" id="weather" style="background:#eef3f4">
+    <div class="shell">
+      <div class="kicker" style="color:#2f6f7a">Live conditions in {d.city}</div>
+      <h2 class="section-title">Weather at {d.shortName}</h2>
+
+      <div class="wx-basic card">
+        <svg class="wico lg" aria-hidden="true"><use href={`#w-${wmo(weather.current.weather_code)}`} /></svg>
+        <div class="wx-now">
+          <div class="wx-temp">{Math.round(weather.current.temperature_2m)}&deg;<span>C</span></div>
+          <div class="wx-label">{wmoLabel(weather.current.weather_code)}</div>
+        </div>
+        <ul class="wx-stats">
+          <li><span>Feels like</span><strong>{Math.round(weather.current.apparent_temperature)}&deg;</strong></li>
+          <li><span>Rain chance</span><strong>{weather.daily[0].pop}%</strong></li>
+          <li><span>Wind</span><strong>{weather.current.windText} ({Math.round(weather.current.wind_speed_10m)} km/h)</strong></li>
+          <li><span>Humidity</span><strong>{weather.current.relative_humidity_2m}%</strong></li>
+          <li><span>UV index</span><strong>{Math.round(weather.current.uv)}</strong></li>
+          <li><span>Sun</span><strong>{fmtTime(weather.sunrise)} – {fmtTime(weather.sunset)}</strong></li>
+        </ul>
+      </div>
+
+      {weather.advice.risks.length > 0 && (
+        <div class="wx-risk">
+          <b>Weather advisory:</b> {weather.advice.risks.join(' ')}
+        </div>
+      )}
+
+      <div class="wx-advice">
+        {weather.advice.dress.length > 0 && (
+          <div class="wx-block">
+            <h3>What to wear</h3>
+            <ul>{weather.advice.dress.map((t) => <li>{t}</li>)}</ul>
+          </div>
+        )}
+        {weather.advice.act.length > 0 && (
+          <div class="wx-block">
+            <h3>How to plan your visit</h3>
+            <ul>{weather.advice.act.map((t) => <li>{t}</li>)}</ul>
+          </div>
+        )}
+        {weather.advice.items.length > 0 && (
+          <div class="wx-block">
+            <h3>What to bring</h3>
+            <div class="wx-items">{weather.advice.items.map((t) => <span class="pill">{t}</span>)}</div>
+          </div>
+        )}
+      </div>
+
+      <div class="wx-forecast">
+        {weather.daily.map((day) => (
+          <div class="card wx-day">
+            <div class="wx-dow">{day.dow}</div>
+            <svg class="wico" aria-hidden="true"><use href={`#w-${day.icon}`} /></svg>
+            <div class="wx-range"><b>{Math.round(day.tmax)}&deg;</b> / {Math.round(day.tmin)}&deg;</div>
+            <div class="wx-pop">{day.pop}% rain</div>
+          </div>
+        ))}
+      </div>
+
+      <p class="credits">Conditions update automatically for the monument&rsquo;s location, with a 7-day outlook. Verify shortly before travel in case of sudden changes.</p>
+    </div>
+  </section>
+)}
+
+{!weather && (
+  <section class="section" id="weather" style="background:#eef3f4">
+    <div class="shell">
+      <h2 class="section-title">Weather at {d.shortName}</h2>
+      <p>Live conditions are momentarily unavailable — please check a weather service before you travel, and revisit shortly.</p>
+    </div>
+  </section>
+)}
+
+<section class="section shell" id="about">
   <div class="split">
     <div>
-      <div class="kicker">شہر کے اندر ایک اور شہر</div>
-      <h2 class="section-title">فصیل، بازار، مسجدیں اور یادداشت</h2>
-      <p>مغلیہ بادشاہ اکبر کے دور میں لاہور کے آباد حصے کو اینٹوں کی بلند فصیل اور دروازوں سے مضبوط کیا گیا۔ بعد کی صدیوں میں مغل، سکھ اور برطانوی ادوار نے اس کے شہری نقشے اور عمارتوں پر اپنی اپنی تہیں چھوڑیں۔ آج یہ علاقہ حویلیوں، بازاروں، عبادت گاہوں، کھانوں اور روایتی دستکاری کے ساتھ ایک زندہ ورثہ ہے۔</p>
-      <div><span class="chip">مغلیہ فن تعمیر</span><span class="chip">شاہی گزرگاہ</span><span class="chip">قدیم بازار</span><span class="chip">لاہوری کھانے</span></div>
+      <div class="kicker">A monument that shaped a nation</div>
+      <h2 class="section-title">About {d.fullName}</h2>
+      <p><strong>{d.fullName}</strong>, also known simply as <strong>{d.shortName}</strong>, is the national monument of {d.country}, erected to mark the Lahore Resolution of 1940. Standing at the centre of Iqbal Park in the Walled City of {d.city}, it draws visitors from across the country and the world.</p>
+      <p class="breadcrumb">{d.fullName} &rarr; {d.city} &rarr; {d.region} &rarr; {d.country}</p>
+      <div><span class="chip">Mughal heritage</span><span class="chip">National monument</span><span class="chip">Photography spot</span><span class="chip">{d.city} old city</span></div>
     </div>
-    <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Wazir_khan_mosque_entry.jpg/1280px-Wazir_khan_mosque_entry.jpg" alt="وزیر خان مسجد، اندرون لاہور" loading="lazy"/><figcaption class="credits">وزیر خان مسجد — تصویر: Shahbaz Aslam، CC BY-SA 4.0، Wikimedia Commons</figcaption></figure>
+    <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt={`${d.nearby2} near ${d.shortName}, ${d.city}`} loading="lazy"/><figcaption class="credits">Nearby landmark: {d.nearby2}, {d.city} — image via Wikimedia Commons</figcaption></figure>
   </div>
 </section>
 
-<section class="section dark" id="route">
+<section class="section dark" id="location">
   <div class="shell">
-    <div class="kicker" style="color:#e5b55f">ایک دن کا بہترین تاریخی راستہ</div><h2 class="section-title">دروازے سے شاہی منظر تک</h2>
-    <div class="route">
-      <div class="card"><b>01 — دہلی دروازہ</b><p>قدیم شہر میں داخل ہونے کا ڈرامائی آغاز۔ صبح کے وقت کم ہجوم اور بہتر روشنی ملتی ہے۔</p></div>
-      <div class="card"><b>02 — شاہی حمام</b><p>دہلی دروازے کے قریب مغلیہ دور کا حمام؛ فریسکو اور شہری زندگی کی تاریخ کے لیے اہم مقام۔</p></div>
-      <div class="card"><b>03 — وزیر خان مسجد</b><p>کاشی کاری، نقش و نگار اور صحن کی وجہ سے لاہور کی سب سے نفیس مغلیہ مسجدوں میں شمار ہوتی ہے۔</p></div>
-      <div class="card"><b>04 — قلعہ و بادشاہی مسجد</b><p>فورٹ روڈ کی سمت اختتام کریں؛ لاہور قلعہ، حضوری باغ، روشنائی دروازہ اور بادشاہی مسجد ایک ہی تاریخی منظرنامہ بناتے ہیں۔</p></div>
+    <div class="kicker" style="color:#e5b55f">Find it on the map</div>
+    <h2 class="section-title">Location &amp; How to Visit {d.shortName} in {d.city}</h2>
+    <div class="map-wrap card">
+      <iframe title={`${d.fullName} Google Map`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={d.mapsEmbed}></iframe>
     </div>
+    <p style="margin-top:1rem"><a class="button alt" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>
+    <p class="credits">Map data © Google. {d.fullName} is situated inside Iqbal Park, Walled City of {d.city}, {d.postal}, {d.country}.</p>
   </div>
 </section>
 
-<section class="section shell">
+<section class="section shell" id="landmarks">
+  <div class="kicker">Explore the surroundings</div>
+  <h2 class="section-title">Landmarks &amp; Attractions Around {d.shortName}</h2>
+  <p>When visiting <strong>{d.fullName}</strong>, travellers can easily explore surrounding historical landmarks and points of interest, including <strong>{d.nearby1}</strong> and <strong>{d.nearby2}</strong>.</p>
   <div class="gallery">
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/View_of_Delhi_Gate%2C_Lahore.jpg/1280px-View_of_Delhi_Gate%2C_Lahore.jpg" alt="صبح کے وقت دہلی دروازہ" loading="lazy"/>
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Delhi_gate_Lahore.jpg/1280px-Delhi_gate_Lahore.jpg" alt="رات میں دہلی دروازے کا اندرونی حصہ" loading="lazy"/>
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt="بادشاہی مسجد لاہور" loading="lazy"/>
+    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/View_of_Delhi_Gate%2C_Lahore.jpg/1280px-View_of_Delhi_Gate%2C_Lahore.jpg" alt={`Delhi Gate, Walled City of ${d.city}`} loading="lazy"/>
+    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt={d.nearby2} loading="lazy"/>
+    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Wazir_khan_mosque_entry.jpg/1280px-Wazir_khan_mosque_entry.jpg" alt="Wazir Khan Mosque, Walled City of Lahore" loading="lazy"/>
   </div>
-  <p class="credits">تصاویر: Umaimaumi (CC BY-SA 4.0)، Mubeenakram (CC BY-SA 4.0)، Ujphotos (CC BY-SA 3.0) — Wikimedia Commons۔ اصل فائل اور لائسنس تفصیل IMAGE-CREDITS.md میں درج ہے۔</p>
+  <p class="credits">Images: Wikimedia Commons (CC). For official updates and regional tourism information, visit the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} / {d.region} Official Tourism Portal</a>.</p>
 </section>
 
-<section class="section" id="plan" style="background:#eadcc3">
+<section class="section" id="getting-there" style="background:#f1e7d4">
   <div class="shell">
-    <div class="kicker">اپنا دن بہتر بنائیں</div><h2 class="section-title">عملی معلومات</h2>
+    <div class="kicker">Plan your arrival</div>
+    <h2 class="section-title">Getting to {d.shortName}</h2>
+    <p>Iqbal Park and the monument sit in the dense heart of the Walled City. The last stretch is pedestrian, so most visitors are dropped at a park gate and walk in. Below are the common ways in.</p>
     <div class="info-grid">
-      <div class="card"><h3>ٹکٹ / اخراجات</h3><p>اندرون لاہور کی عام گلیوں اور بازاروں میں داخلہ عمومی طور پر مفت ہے۔ اندر موجود یادگاروں کے الگ نرخ ہیں؛ مثال کے طور پر شاہی حمام کے سرکاری نرخ طالب علم، مقامی اور غیر ملکی زائرین کے لیے الگ ہیں۔ خصوصی WCLA ٹورز بھی علیحدہ ٹکٹ پر ہوتے ہیں۔</p></div>
-      <div class="card"><h3>بہترین وقت / دورانیہ</h3><p><strong>صبح:</strong> فوٹوگرافی اور کم ہجوم۔ <strong>شام:</strong> فورٹ روڈ اور کھانے کے لیے زیادہ زندہ ماحول۔ صرف دہلی دروازہ–وزیر خان روٹ کے لیے 2–3 گھنٹے؛ قلعہ اور بادشاہی مسجد سمیت آدھا یا پورا دن رکھیں۔</p></div>
-      <div class="card"><h3>پارکنگ</h3><p>قدیم گلیوں میں نجی گاڑی لے جانا مناسب نہیں۔ فورٹ روڈ فوڈ اسٹریٹ پارکنگ WCLA کے متعدد سرکاری ٹورز کا اجتماع مقام بھی رہی ہے؛ یہاں سے پیدل یا رکشا کے ذریعے تاریخی حصوں تک جانا آسان رہتا ہے۔</p></div>
-      <div class="card"><h3>تفصیلی آمدورفت</h3><p>رائیڈ ہیلنگ/ٹیکسی سے <strong>Delhi Gate</strong> یا <strong>Fort Road Food Street</strong> بطور ڈراپ آف پوائنٹ دیں۔ اندرونی سڑکیں تنگ ہیں، اس لیے آخری حصہ پیدل یا مقامی رکشا سے طے کریں۔ نماز اور مصروف بازار کے اوقات میں اضافی وقت رکھیں۔</p></div>
+      <div class="card">
+        <h3 class="block-title">From the airport</h3>
+        <p>{d.city}&rsquo;s international airport (Allama Iqbal International) lies roughly 25–30 km east of the old city. The most direct option is an app-based ride or metered taxi, which takes about 40–60 minutes depending on traffic. City buses and the metro network can also reach the old city with one or two transfers if you are travelling light.</p>
+      </div>
+      <div class="card">
+        <h3 class="block-title">Public transit</h3>
+        <p>{d.city} runs a bus rapid transit line (Metrobus) along the main boulevards, with stops a short walk or auto-rickshaw ride from the Walled City, and an elevated metro train (Orange Line) with stations within a few kilometres of the old city. From the nearest transit stop, a short taxi or rickshaw completes the trip to a park gate.</p>
+      </div>
+      <div class="card">
+        <h3 class="block-title">Taxis &amp; ride-hailing</h3>
+        <p>App-based ride-hailing and metered taxis can drop passengers close to the Iqbal Park gates. Request the drop-off for &ldquo;Iqbal Park, Minar-e-Pakistan&rdquo; and allow extra time in the evening when the area is busy. The final approach to the monument is on foot through the park.</p>
+      </div>
+      <div class="card">
+        <h3 class="block-title">Driving &amp; parking</h3>
+        <p>If you drive, use the designated car and motorcycle parking areas inside Iqbal Park. The surrounding old-city streets are narrow and fill quickly on weekends and holidays, so arrive early. Ride-sharing drop-offs are easiest near the main gates.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="section shell" id="food">
-  <div class="split">
-    <div>
-      <div class="kicker">لاہور کو چکھیں</div><h2 class="section-title">周边美食 · اردگرد کھانے</h2>
-      <p><strong>فورٹ روڈ فوڈ اسٹریٹ:</strong> تاریخی عمارتوں کے بیچ روایتی لاہوری کھانوں کا معروف کلسٹر۔</p>
-      <p><strong>ٹیکسالی گیٹ:</strong> WCLA کی معلومات میں پائے، حلوہ پوری اور روایتی ناشتے کے لیے خاص طور پر مشہور بتایا گیا ہے؛ فاضل دین/پھجے کے پائے اور تاج محل حلوہ پوری جیسے نام اس علاقے سے وابستہ ہیں۔</p>
-      <p><strong>بازاروں میں:</strong> لسی، کباب، چنے، نان اور مٹھائی کے چھوٹے مقامی اسٹال تجربے کا حصہ ہیں۔ صفائی اور تازگی دیکھ کر انتخاب کریں۔</p>
-    </div>
-    <div class="card" style="padding:1.8rem"><h3>قریب کے اہم مقامات</h3><p>وزیر خان مسجد · شاہی حمام · لاہور قلعہ · بادشاہی مسجد · حضوری باغ · روشنائی دروازہ · فقیـر خانہ میوزیم</p><div class="rule"></div><p>اگر آپ پہلی بار آ رہے ہیں تو ایک ہی دن میں بہت زیادہ گلیاں کور کرنے کے بجائے ایک تاریخی محور چنیں؛ اندرون لاہور کی اصل کشش اس کی رفتار، بازار اور روزمرہ زندگی میں ہے۔</p></div>
+<section class="section shell" id="facilities">
+  <div class="kicker">On-site &amp; nearby</div>
+  <h2 class="section-title">Visitor Services &amp; Surrounding Facilities</h2>
+  <p>This is an independent visitor-information resource. We describe the <em>types</em> of services available so you can plan; we do not endorse specific businesses. Availability and quality vary, so confirm on arrival.</p>
+  <div class="info-grid">
+    <div class="card"><h3 class="block-title">Restrooms (WC)</h3><p>Public restrooms are available within Iqbal Park near the main gates and the food-court area. Carry small change and tissues as a precaution.</p></div>
+    <div class="card"><h3 class="block-title">Parking</h3><p>Designated parking areas for cars and motorcycles are provided inside the park. Expect fuller lots on weekends, public holidays and during evening illumination hours.</p></div>
+    <div class="card"><h3 class="block-title">Food &amp; drink</h3><p>A range of food stalls, tea houses and casual restaurants operate around the Walled City and inside the park grounds. Try local snacks from busy, reputable stalls and drink bottled or sealed water.</p></div>
+    <div class="card"><h3 class="block-title">Lodging</h3><p>{d.city} offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and the central districts. Book ahead during peak travel seasons.</p></div>
+    <div class="card"><h3 class="block-title">Shopping</h3><p>The bazaars and markets of the Walled City are known for textiles, handicrafts, spices and souvenirs. Bargaining is customary; keep valuables secure in crowded lanes.</p></div>
+    <div class="card"><h3 class="block-title">Fuel &amp; EV charging</h3><p>Petrol stations and electric-vehicle charging points are available along the major approach roads. Top up before entering the old city, where fuel stops are limited.</p></div>
   </div>
 </section>
 
-<section class="section dark" id="map">
+<section class="section dark" id="seasons">
   <div class="shell">
-    <div class="kicker" style="color:#e5b55f">نقشہ</div><h2 class="section-title">اندرون لاہور کہاں ہے؟</h2>
-    <div class="map-wrap card"><iframe title="اندرون لاہور گوگل نقشہ" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=Walled%20City%20of%20Lahore%2C%20Lahore%2C%2054000%2C%20Pakistan&output=embed&hl=ur"></iframe></div>
-    <p><a class="button alt" href="https://maps.app.goo.gl/wK9FiYQgEEFcchqu9" rel="noopener noreferrer">Google Maps میں کھولیں</a></p>
+    <div class="kicker" style="color:#e5b55f">When to come</div>
+    <h2 class="section-title">Seasonal Visiting Strategy</h2>
+    <p>Based on {d.city}&rsquo;s long-term climatological normals (multi-decade means), the monument and its park change a great deal through the year. Use the table to match your visit to weather, comfort and crowds.</p>
+    <div class="table-wrap card">
+      <table class="strategy">
+        <thead><tr><th>Season</th><th>Weather &amp; comfort</th><th>Crowds</th><th>Air &amp; environment</th><th>Recommended focus</th></tr></thead>
+        <tbody>
+          <tr><td><b>Dec – Feb</b><br/><small>Winter</small></td><td>Mild and dry, days 7–20&deg;C; cold mornings/evenings.</td><td>Moderate; peaks on weekends and holidays.</td><td>Smog season — air quality often poorest of the year (Nov–Jan).</td><td>Daytime walks and photography on clear days; sensitive groups check air quality.</td></tr>
+          <tr><td><b>Mar – Apr</b><br/><small>Spring</small></td><td>Warm and pleasant, 20–35&deg;C; occasional dust/haze.</td><td>Rising as schools break.</td><td>Generally good; occasional haze.</td><td>All-round visiting; comfortable for families and long walks.</td></tr>
+          <tr><td><b>May – Jun</b><br/><small>Pre-monsoon</small></td><td>Very hot, 35–45&deg;C; intense sun midday.</td><td>Lower in midday heat; evenings busier.</td><td>Hot, dry, dusty; poor air on calm days.</td><td>Mornings and after sunset only; hydrate and seek shade.</td></tr>
+          <tr><td><b>Jul – Sep</b><br/><small>Monsoon</small></td><td>Hot and humid; heavy showers and afternoon storms.</td><td>Variable; drops during heavy rain.</td><td>Lush, green park; paths can be slippery after rain.</td><td>Pack rain gear; watch forecasts for thunderstorms.</td></tr>
+          <tr><td><b>Oct – Nov</b><br/><small>Autumn</small></td><td>Most comfortable, 20–32&deg;C; clear skies return.</td><td>Higher as weather improves.</td><td>Air quality recovers; pleasant evenings.</td><td>Ideal window — combine monument with the old city.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="credits">Climate figures are indicative long-term norms for {d.city}; actual conditions vary year to year and within a season. The park&rsquo;s lawns and lake attract birds and peacocks — observe wildlife from a distance and do not feed it.</p>
+  </div>
+</section>
+
+<section class="section shell" id="itineraries">
+  <div class="kicker">Make the most of your day</div>
+  <h2 class="section-title">Itineraries</h2>
+  <p>Choose a route that fits your group and pace. All options start from the monument inside Iqbal Park.</p>
+
+  <h3 class="block-title">By type of traveller</h3>
+  <div class="info-grid">
+    <div class="card"><h4 class="route-name">Families with children</h4><p>Flat, paved park paths, shade, restrooms and food kiosks make this easy. Visit in the morning, let children enjoy the open lawns and the park lake, and keep the walk short. Strollers are manageable on main paths.</p></div>
+    <div class="card"><h4 class="route-name">Photography &amp; nature</h4><p>Arrive at sunrise or stay for sunset when the tower is most photogenic. Capture the symmetrical minaret, its reflection in the park lake, and the Mughal skyline beyond. A tripod is useful in low light.</p></div>
+    <div class="card"><h4 class="route-name">Low-effort / accessible</h4><p>Approach by vehicle to the nearest gate, use paved paths and benches, and keep to a compact loop close to the monument. Avoid the midday heat and crowded weekend evenings.</p></div>
+  </div>
+
+  <h3 class="block-title" style="margin-top:2.5rem">General routes</h3>
+  <div class="info-grid">
+    <div class="card"><h4 class="route-name">Half-day</h4><p>Enter Iqbal Park in the morning &rarr; visit the monument and gardens &rarr; walk a short stretch of the Walled City to Wazir Khan Mosque and Delhi Gate &rarr; return. About 3–4 hours at a relaxed pace.</p></div>
+    <div class="card"><h4 class="route-name">Full-day</h4><p>Morning at the monument and Iqbal Park &rarr; old-city walk (Delhi Gate, Wazir Khan Mosque, Shahi Hammam) &rarr; lunch in the Walled City &rarr; afternoon at Badshahi Mosque and Lahore Fort &rarr; return in the evening for the illuminated tower. 7–8 hours.</p></div>
+  </div>
+</section>
+
+<section class="section dark" id="history">
+  <div class="shell">
+    <div class="kicker" style="color:#e5b55f">Background &amp; stories</div>
+    <h2 class="section-title">History &amp; Significance</h2>
+    <div class="split">
+      <div>
+        <p><strong>{d.fullName}</strong> stands on the ground where, on 23 March 1940, the All-India Muslim League passed the Lahore Resolution — the formal demand for a separate homeland for the Muslims of the subcontinent. The site was then part of Minto Park, later renamed Iqbal Park after the poet-philosopher Allama Iqbal.</p>
+        <p>The foundation stone was laid on the same date in 1960, and the monument was completed in 1968. It was designed by architect Nasreddin Murat-Khan, who migrated to Pakistan and shaped a structure that blends Islamic, Mughal and modernist motifs.</p>
+        <p>The tower rises about 70 metres through a series of petal-shaped platforms &ldquo;unfolding&rdquo; from the ground — widely read as a symbol of a nation coming into being. Inscriptions at the base include the text of the Pakistan Resolution and verses, and the different stone and marble tiers are said to reflect the stages of the struggle.</p>
+        <p>Today the monument is a civic gathering point, a photography landmark and a reminder of the political moment that reshaped the region.</p>
+      </div>
+      <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Minar-e-Pakistan%2C_Lahore.jpg/1280px-Minar-e-Pakistan%2C_Lahore.jpg" alt={`${d.fullName}, ${d.city}`} loading="lazy"/><figcaption class="credits">{d.fullName}, {d.city} — image via Wikimedia Commons</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="responsibility" style="background:#e7ddc8">
+  <div class="shell">
+    <div class="kicker">Visit responsibly</div>
+    <h2 class="section-title">Respect &amp; Visitor Responsibility</h2>
+    <div class="info-grid">
+      <div class="card"><h3 class="block-title">Protect the monument</h3><p>Do not climb restricted areas or mark the stonework. Keep to paths and railings so the structure and gardens stay intact for everyone.</p></div>
+      <div class="card"><h3 class="block-title">Dress &amp; conduct</h3><p>Modest attire is appropriate at this civic and cultural site. Keep noise low near gatherings and ask before photographing people.</p></div>
+      <div class="card"><h3 class="block-title">Reduce your footprint</h3><p>Carry a reusable bottle, take litter home or use bins, and avoid single-use plastics where you can. The park is a shared green space.</p></div>
+      <div class="card"><h3 class="block-title">Health &amp; safety</h3><p>In winter smog season, sensitive groups should check air quality and carry a mask. Secure valuables in crowded areas, and hydrate in the summer heat.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="reviews" style="background:#eadcc3">
+  <div class="shell">
+    <div class="kicker">Visitor ratings</div>
+    <h2 class="section-title">Reviews &amp; Ratings</h2>
+    <div class="review-badge">
+      <span class="review-score">{d.rating.toFixed(1)}</span>
+      <span class="review-meta">out of 5<br/><strong>{d.reviews.toLocaleString()} reviews</strong></span>
+    </div>
+    <p class="review-note">评分与评价数同步自谷歌地图（Google Maps）用户评价 · {d.syncMonth} · 点击查看谷歌地图全部评价↗</p>
+    <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
+    <p style="margin-top:1rem"><a class="button" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">在谷歌地图查看全部评价</a></p>
   </div>
 </section>
 
 <section class="section shell" id="faq">
-  <div class="kicker">FAQ</div><h2 class="section-title">اکثر پوچھے جانے والے سوالات</h2>
-  <details open><summary>اندرون لاہور دیکھنے کے لیے کتنا وقت رکھنا چاہیے؟</summary><p>کم از کم آدھا دن رکھیں۔ اگر لاہور قلعہ، بادشاہی مسجد، وزیر خان مسجد اور شاہی حمام بھی دیکھنے ہوں تو پورا دن زیادہ بہتر رہتا ہے۔</p></details>
-  <details><summary>کیا اندرون لاہور میں داخلے کی فیس ہے؟</summary><p>قدیم شہر کی عام گلیوں اور بازاروں میں داخلہ عمومی طور پر مفت ہے۔ قلعہ، حمام، میوزیم، خصوصی دوروں اور بعض یادگاروں کے الگ ٹکٹ ہو سکتے ہیں۔</p></details>
-  <details><summary>کہاں سے آغاز کرنا بہتر ہے؟</summary><p>پیدل تاریخی راستے کے لیے دہلی دروازہ ایک عمدہ آغاز ہے؛ فورٹ روڈ کی طرف روشنائی دروازہ، بادشاہی مسجد اور لاہور قلعہ دوسرا مضبوط کلسٹر ہے۔</p></details>
-  <details><summary>کیا پارکنگ آسان ہے؟</summary><p>اندرونی گلیوں میں نہیں۔ فورٹ روڈ فوڈ اسٹریٹ پارکنگ زیادہ عملی انتخاب ہے اور سرکاری گائیڈڈ ٹورز کے لیے بھی اجتماع مقام کے طور پر استعمال ہوئی ہے۔</p></details>
-  <details><summary>کیا اوقات ہر جگہ ایک جیسے ہیں؟</summary><p>نہیں۔ قدیم شہر کی عوامی گلیاں اور بازار ایک شہری علاقہ ہیں، لیکن مسجد، حمام، قلعہ، میوزیم اور گائیڈڈ ٹور کے اوقات الگ ہو سکتے ہیں؛ روانگی سے پہلے متعلقہ مقام کی تازہ معلومات دیکھیں۔</p></details>
+  <div class="kicker">FAQ</div>
+  <h2 class="section-title">Frequently Asked Questions</h2>
+  <details open><summary>Where is {d.fullName} located?</summary><p>{d.fullName} is located inside Iqbal Park in the Walled City of {d.city}, {d.region}, {d.country}, near {d.nearby1} and {d.nearby2}.</p></details>
+  <details><summary>Is {d.shortName} free to visit?</summary><p>Yes, {d.fullName} is a public national monument and is free to visit year-round. A small ticket may apply for some facilities within the surrounding Iqbal Park grounds.</p></details>
+  <details><summary>What is {d.fullName}?</summary><p>{d.fullName} is the national monument of {d.country}, built to commemorate the Lahore Resolution of 1940 that paved the way for an independent state.</p></details>
+  <details><summary>When was {d.fullName} built?</summary><p>The foundation stone was laid on 23 March 1940 (the date of the Lahore Resolution), and the monument was completed between 1960 and 1968.</p></details>
+  <details><summary>What are the best times to visit {d.shortName}?</summary><p>The cooler, clearer months from late October to March are the most comfortable. Mornings and after sunset are the most pleasant parts of the day in every season.</p></details>
+  <details><summary>How do I reach {d.fullName}?</summary><p>It sits inside Iqbal Park in the Walled City of {d.city}. App-based ride-hailing or metered taxis can drop you near the park gates; the final walk to the monument is on foot through the park.</p></details>
+  <details><summary>What other landmarks are nearby?</summary><p>Within walking distance you will find {d.nearby1}, {d.nearby2}, the Walled City of {d.city}, Wazir Khan Mosque and the Shahi Hammam.</p></details>
+  <details><summary>What is the weather like in {d.city}?</summary><p>{d.city} has a humid subtropical climate: very hot pre-monsoon summers (May–June), a warm monsoon (July–September), and mild, dry winters (December–February) that can bring seasonal smog.</p></details>
+  <details><summary>Is parking available at {d.shortName}?</summary><p>Designated car and motorcycle parking areas are available inside Iqbal Park; the narrow old-city streets around the Walled City fill up quickly, so allow extra time.</p></details>
+  <details><summary>How much time should I plan for a visit?</summary><p>A focused monument-and-park visit takes about half a day; a full day lets you combine it with the Walled City, Badshahi Mosque and Lahore Fort.</p></details>
 </section>
 
-<section class="section" style="background:#d8c29e">
+<section class="section" id="sources" style="background:#d8c29e">
   <div class="shell">
-    <h2 class="section-title">ماخذ اور تصویری حقوق</h2>
-    <p>تاریخی و عملی معلومات Walled City of Lahore Authority، Punjab Auqaf / Lahore District اور معتبر نقشہ/جغرافیائی حوالوں سے مرتب کی گئی ہیں۔ ریٹنگ 4.4/5 (77 Google reviews کا mirrored snapshot) وقت کے ساتھ بدل سکتی ہے؛ اسے مستقل سرکاری درجہ بندی نہ سمجھیں۔</p>
-    <p class="credits">فوٹو لائسنس: Delhi gate Lahore — Mubeenakram, CC BY-SA 4.0؛ View of Delhi Gate, Lahore — Umaimaumi, CC BY-SA 4.0؛ Wazir khan mosque entry — Shahbaz Aslam, CC BY-SA 4.0؛ Badshahi Mosque, Lahore. King's Mosque — Ujphotos, CC BY-SA 3.0۔</p>
+    <h2 class="section-title">Sources &amp; Image Credits</h2>
+    <p><strong>评价 · 同步时间 {d.syncMonth}</strong></p>
+    <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
+    <p>Rating ({d.rating.toFixed(1)}/5) and review count ({d.reviews.toLocaleString()}) are mirrored from Google Maps user reviews and may change over time; they are not an official government rating. See all reviews on <a href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Google Maps</a>.</p>
+    <p class="credits">Historical and practical information is compiled from public tourism references including the {d.country} / {d.region} tourism portals and well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses).</p>
   </div>
 </section>
 
 <footer class="footer">
-  <div class="shell"><div><img src="/logo.svg" alt="اندرون لاہور لوگو" width="240" height="72"/><p>یہ ایک غیر سرکاری معلوماتی ویب سائٹ ہے اور Walled City of Lahore Authority یا کسی سرکاری ادارے کی نمائندگی نہیں کرتی۔</p></div><div><b>فوری لنکس</b><p><a href="#route">تاریخی راستہ</a> · <a href="#plan">عملی معلومات</a> · <a href="#faq">FAQ</a></p></div></div>
+  <div class="shell">
+    <div>
+      <img src="/logo.svg" alt={`${d.fullName} logo`} width="240" height="72"/>
+      <p>This is an unofficial information website and is not affiliated with or endorsed by any government authority.</p>
+    </div>
+    <div><b>Quick links</b><p><a href="#about">About</a> · <a href="#weather">Weather</a> · <a href="#getting-there">Getting there</a> · <a href="#facilities">Facilities</a> · <a href="#seasons">Seasons</a> · <a href="#itineraries">Itineraries</a> · <a href="#history">History</a> · <a href="#reviews">Reviews</a> · <a href="#faq">FAQ</a> · <a href="#sources">Sources</a></p></div>
+  </div>
 </footer>
+
+<script is:inline>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
+</script>
 </body>
 </html>

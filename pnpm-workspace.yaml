@@ -1,3 +1,7 @@
+allowBuilds:
+  esbuild: true
+  workerd: true
+  '@tailwindcss/oxide': true
 minimumReleaseAgeExclude:
   - '@astrojs/cloudflare@14.3.2'
   - astro@7.3.3

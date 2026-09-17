@@ -1,5 +1,32 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 .astro/
+
+# Cloudflare / Wrangler
 .wrangler/
+.dev.vars
+
+# Env & secrets
+.env
+.env.*
+
+# Logs & caches
+*.log
+.cache/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Local diagnostic / temporary artifacts (not for upload)
+deptest.*
+nettest.*
+lockgen*.log
+frozencheck.log
+checkfm.mjs
+install*.log
+build.log
+console.log*

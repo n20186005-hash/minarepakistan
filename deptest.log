@@ -1,7 +1,0 @@
-Candidate wrangler 4.13x versions: 4.130.0, 4.131.0, 4.131.1, 4.131.2, 4.132.0, 4.133.0
-4.130.0 -> miniflare 5.20260908.0-alpha => OK
-4.131.0 -> miniflare 5.20260910.0-alpha => OK
-4.131.1 -> miniflare 5.20260911.0-alpha => OK
-4.131.2 -> miniflare 5.20260911.1-alpha => OK
-4.132.0 -> miniflare 5.20260915.0-alpha => OK
-4.133.0 -> miniflare 5.20260916.0-alpha => OK

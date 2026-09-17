@@ -1,0 +1,16 @@
+{
+  "name": "Minar-e-Pakistan Visitor Guide",
+  "short_name": "Minar-e-Pakistan",
+  "description": "Visitor guide to Minar-e-Pakistan in Lahore, Punjab, Pakistan.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4ead7",
+  "theme_color": "#8e3b24",
+  "lang": "en",
+  "icons": [
+    { "src": "/icon-512.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-512.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "/favicon-180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
