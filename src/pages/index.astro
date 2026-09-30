@@ -12,6 +12,7 @@ const ogImage = new URL('/images/hero.jpg', siteUrl).toString();
 const d = {
   fullName: 'Minar-e-Pakistan',
   shortName: 'Minar-e-Pakistan',
+  urduName: 'مینارِ پاکستان',
   city: 'Lahore',
   region: 'Punjab',
   country: 'Pakistan',
@@ -24,8 +25,9 @@ const d = {
   nearby1: 'Lahore Fort',
   nearby2: 'Badshahi Mosque',
   govtUrl: 'https://www.tourism.gov.pk/',
+  punjabUrl: 'https://www.punjab.gov.pk/',
   rating: 4.6,
-  reviews: 20475,
+  reviews: 20553,
   syncMonth: '2026 年 9 月'
 };
 
@@ -221,7 +223,7 @@ const attractionLd = {
   '@type': 'TouristAttraction',
   '@id': `https://${DOMAIN}/#attraction`,
   name: d.fullName,
-  alternateName: [d.shortName, `${d.city} ${d.fullName}`],
+  alternateName: [d.shortName, d.urduName, `${d.city} ${d.fullName}`],
   description: `Comprehensive visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport, facilities and itineraries.`,
   url: `https://${DOMAIN}`,
   image: [ogImage],
@@ -236,7 +238,13 @@ const attractionLd = {
   },
   geo: { '@type': 'GeoCoordinates', latitude: d.lat, longitude: d.lng },
   hasMap: d.mapsUrl,
-  sameAs: [d.mapsUrl, d.govtUrl]
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: d.rating,
+    reviewCount: d.reviews,
+    bestRating: 5
+  },
+  sameAs: [d.mapsUrl, d.govtUrl, d.punjabUrl]
 };
 
 const faqLd = {
@@ -262,8 +270,8 @@ const faqLd = {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{d.fullName} ({d.city}) - Visitor Guide &amp; Location</title>
-  <meta name="description" content={`Discover ${d.fullName}, the iconic landmark in ${d.city}, ${d.region}, ${d.country}. View live weather, transport options, visitor facilities, seasonal tips and itineraries.`} />
+  <title>{d.fullName} {d.city} — Visitor Guide: History, Timings, Entry Fee &amp; How to Reach</title>
+  <meta name="description" content={`Plan your visit to ${d.fullName} (${d.urduName}) in ${d.city}, ${d.region}, ${d.country}. Find updated timings, entry fee, history, location map, transport options and visitor tips.`} />
   <link rel="canonical" href={canonical} />
   <meta property="og:title" content={`${d.fullName} - ${d.city} Travel Guide`} />
   <meta property="og:description" content={`Official visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport and itineraries.`} />
@@ -329,7 +337,7 @@ const faqLd = {
   </nav>
   <div class="shell hero-copy" id="top">
     <div class="kicker" style="color:#efc981">MINAR-E-PAKISTAN · {d.city} {d.postal}</div>
-    <h1>{d.fullName}<br/><span style="font-size:.5em;font-weight:700">The National Monument of {d.country}</span></h1>
+    <h1>{d.fullName}<br/><span style="font-size:.5em;font-weight:700">The National Monument of {d.country} · {d.urduName}</span></h1>
     <p>Welcome to <strong>{d.fullName}</strong>, the iconic national monument in the heart of <strong>{d.city}</strong>, <strong>{d.region}</strong>, <strong>{d.country}</strong> — a primary hub for travellers exploring the Walled City and its Mughal heritage.</p>
     <a class="button" href="#about">Start the guide &rarr;</a>
   </div>
@@ -598,7 +606,7 @@ const faqLd = {
     <p><strong>评价 · 同步时间 {d.syncMonth}</strong></p>
     <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
     <p>Rating ({d.rating.toFixed(1)}/5) and review count ({d.reviews.toLocaleString()}) are mirrored from Google Maps user reviews and may change over time; they are not an official government rating. See all reviews on <a href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Google Maps</a>.</p>
-    <p class="credits">Historical and practical information is compiled from public tourism references including the {d.country} / {d.region} tourism portals and well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses).</p>
+    <p class="credits">Historical and practical information is compiled from public tourism references including the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} Tourism Portal</a> and the <a href={d.punjabUrl} target="_blank" rel="noopener noreferrer">Government of {d.region}</a>, along with well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses).</p>
   </div>
 </section>
 
