@@ -1,13 +1,13 @@
 ---
 import '../styles/global.css';
+import { getWeather, wmo, wmoLabel, fmtTime, type WxData } from '../lib/weather';
 
 const DOMAIN = 'minarepakistan.com';
-const LAT = 31.5925;
-const LNG = 74.3146;
 
 const siteUrl = Astro.site ?? new URL(`https://${DOMAIN}`);
 const canonical = new URL(Astro.url.pathname, siteUrl).toString();
-const ogImage = new URL('/images/hero.jpg', siteUrl).toString();
+Astro.response.headers.set('Cache-Control', 'no-store');
+const ogImage = new URL('/images/minar.jpg', siteUrl).toString();
 
 const d = {
   fullName: 'Minar-e-Pakistan',
@@ -27,188 +27,11 @@ const d = {
   govtUrl: 'https://www.tourism.gov.pk/',
   punjabUrl: 'https://www.punjab.gov.pk/',
   rating: 4.6,
-  reviews: 20553,
-  syncMonth: '2026 年 9 月'
+  reviews: 20693,
+  syncMonth: '29 October 2026'
 };
 
 /* ----------------------------- Weather (server-side fetch + cache) ----------------------------- */
-type WxDay = { dow: string; tmax: number; tmin: number; pop: number; icon: string; label: string };
-type WxAdvice = { dress: string[]; act: string[]; items: string[]; risks: string[] };
-type WxData = {
-  current: {
-    temperature_2m: number; apparent_temperature: number; relative_humidity_2m: number;
-    wind_speed_10m: number; wind_direction_10m: number; weather_code: number; precipitation: number;
-    windLevel: number; windText: string; uv: number;
-  };
-  sunrise: string;
-  sunset: string;
-  daily: WxDay[];
-  advice: WxAdvice;
-};
-
-function wmo(code: number) {
-  if (code === 0) return 'clear';
-  if (code <= 2) return 'partly';
-  if (code === 3) return 'cloud';
-  if (code === 45 || code === 48) return 'fog';
-  if (code >= 51 && code <= 57) return 'rain';
-  if (code >= 61 && code <= 67) return 'rain';
-  if (code >= 71 && code <= 77) return 'snow';
-  if (code >= 80 && code <= 82) return 'rain';
-  if (code >= 85 && code <= 86) return 'snow';
-  if (code >= 95) return 'storm';
-  return 'cloud';
-}
-function wmoLabel(code: number) {
-  if (code === 0) return 'Clear';
-  if (code === 1) return 'Mainly clear';
-  if (code === 2) return 'Partly cloudy';
-  if (code === 3) return 'Overcast';
-  if (code === 45 || code === 48) return 'Fog';
-  if (code >= 51 && code <= 57) return 'Drizzle';
-  if (code >= 61 && code <= 67) return 'Rain';
-  if (code >= 71 && code <= 77) return 'Snow';
-  if (code >= 80 && code <= 82) return 'Showers';
-  if (code >= 85 && code <= 86) return 'Snow showers';
-  if (code >= 95) return code >= 96 ? 'Thunderstorm with hail' : 'Thunderstorm';
-  return 'Cloudy';
-}
-function fmtTime(iso: string) {
-  const t = (iso.split('T')[1] || '00:00');
-  const [h, m] = t.split(':').map(Number);
-  const ap = h >= 12 ? 'PM' : 'AM';
-  const h12 = ((h + 11) % 12) + 1;
-  return `${h12}:${String(m).padStart(2, '0')} ${ap}`;
-}
-function dow(iso: string) {
-  const [y, mo, da] = iso.split('T')[0].split('-').map(Number);
-  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(Date.UTC(y, mo - 1, da)).getUTCDay()];
-}
-function windBeaufort(kmh: number): number {
-  const t = [1, 5, 11, 19, 28, 38, 49, 61, 74, 88, 102, 117];
-  let lvl = 0;
-  for (let i = 0; i < t.length; i++) if (kmh > t[i]) lvl = i + 1;
-  return lvl;
-}
-function compass(deg: number): string {
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  return dirs[Math.round(deg / 45) % 8];
-}
-function buildAdvice(o: {
-  curCode: number; tmax: number; tmin: number; pop: number; windLevel: number; uv: number; humidity: number;
-}): WxAdvice {
-  const dress: string[] = [];
-  const act: string[] = [];
-  const items: string[] = [];
-  const risks: string[] = [];
-
-  const isThunder = o.curCode >= 95;
-  const isHeavy = [65, 66, 67, 82, 95, 99].includes(o.curCode);
-  const isRain = (o.curCode >= 51 && o.curCode <= 67) || (o.curCode >= 80 && o.curCode <= 82);
-  const isLight = (o.curCode >= 51 && o.curCode <= 61) || o.curCode === 80;
-  const isSunny = o.curCode <= 1;
-  const isCloudy = o.curCode === 2 || o.curCode === 3;
-  const isFog = o.curCode === 45 || o.curCode === 48;
-  const diff = o.tmax - o.tmin;
-
-  if (o.tmax >= 32) dress.push('It is hot — avoid the midday sun and wear light, breathable clothing');
-  if (o.tmax <= 10) dress.push('Cold — bring a warm coat');
-  else if (diff > 8) dress.push('Big day-to-night temperature swing — bring a layer you can add or remove');
-  if (o.uv >= 5) dress.push('Strong UV — use sunscreen, sunglasses and a hat');
-  if (isHeavy) dress.push('Wet and windy — wear a waterproof jacket');
-  else if (isRain || o.pop >= 60) dress.push('Carry rain gear or a waterproof jacket');
-  if (o.windLevel >= 7) dress.push('Strong wind — secure your hat and avoid loose clothing');
-  if (isFog) dress.push('Low visibility — take care and keep warm');
-
-  if (isThunder) risks.push('Thunderstorm — avoid lightning: do not shelter under trees, stay away from high ground and open water');
-  if (isHeavy) {
-    risks.push('Heavy rain — avoid low-lying areas; some outdoor facilities may close');
-    act.push('Limit time outdoors; favour covered walkways and indoor exhibits');
-  }
-  if (o.pop >= 60) act.push('High chance of rain — plan indoor activities and keep rain gear handy');
-  if (isLight && !isHeavy) act.push('Light rain — paths may be slippery, watch your step');
-  if (o.tmax >= 32 && !isHeavy) act.push('Keep outdoor time short and avoid the midday heat');
-  if (isSunny) act.push('Clear and pleasant — great for outdoor visits; early morning and sunset are best for photos');
-  if (isCloudy) act.push('Soft light — ideal for photos and longer outdoor strolls');
-  if (isFog) act.push('Poor visibility — skip long-distance views and slow your pace');
-  if (o.windLevel >= 7) {
-    risks.push('High wind — stay clear of hoardings, high ground and open areas');
-    act.push('Elevated and waterside facilities may close — plan accordingly');
-  } else if (o.windLevel >= 5) act.push('Breezy — elevated or waterside facilities may pause; check ahead');
-
-  if (isHeavy) items.push('Raincoat (avoid long umbrellas in strong wind)');
-  else if (isRain || o.pop >= 60) items.push('Umbrella / raincoat');
-  if (o.tmax >= 32 || o.uv >= 5) items.push('Sunscreen');
-  if (o.uv >= 5) items.push('Sunglasses, sun hat');
-  if (o.tmax >= 32) items.push('Plenty of water, heat-relief items');
-  if (diff > 8 || o.tmax <= 15 || isHeavy) items.push('A jacket / light layer');
-  if (isFog) items.push('A mask');
-  if (o.humidity >= 75 && o.tmax >= 28) items.push('A sweat towel');
-
-  return { dress, act, items, risks };
-}
-
-let weatherCache: { ts: number; data: WxData } | null = null;
-const WX_TTL = 30 * 60 * 1000;
-
-async function getWeather(): Promise<WxData> {
-  const now = Date.now();
-  if (weatherCache && now - weatherCache.ts < WX_TTL) return weatherCache.data;
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
-    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,precipitation` +
-    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunrise,sunset` +
-    `&timezone=auto&forecast_days=7`;
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error('wx ' + res.status);
-  const j: any = await res.json();
-  const c = j.current;
-  const curCode = c.weather_code as number;
-  const windLevel = windBeaufort(c.wind_speed_10m as number);
-  const windText = `${compass(c.wind_direction_10m as number)} ${windLevel}`;
-  const uv = (j.daily.uv_index_max[0] as number) ?? 0;
-  const daily: WxDay[] = (j.daily.time as string[]).map((t: string, i: number) => {
-    const code = j.daily.weather_code[i] as number;
-    return {
-      dow: dow(t),
-      tmax: j.daily.temperature_2m_max[i] as number,
-      tmin: j.daily.temperature_2m_min[i] as number,
-      pop: j.daily.precipitation_probability_max[i] as number,
-      icon: wmo(code),
-      label: wmoLabel(code)
-    };
-  });
-  const d0 = daily[0];
-  const advice = buildAdvice({
-    curCode,
-    tmax: d0.tmax,
-    tmin: d0.tmin,
-    pop: d0.pop,
-    windLevel,
-    uv,
-    humidity: c.relative_humidity_2m as number
-  });
-  const data: WxData = {
-    current: {
-      temperature_2m: c.temperature_2m,
-      apparent_temperature: c.apparent_temperature,
-      relative_humidity_2m: c.relative_humidity_2m,
-      wind_speed_10m: c.wind_speed_10m,
-      wind_direction_10m: c.wind_direction_10m,
-      weather_code: curCode,
-      precipitation: c.precipitation ?? 0,
-      windLevel,
-      windText,
-      uv
-    },
-    sunrise: j.daily.sunrise[0],
-    sunset: j.daily.sunset[0],
-    daily,
-    advice
-  };
-  weatherCache = { ts: now, data };
-  return data;
-}
 
 let weather: WxData | null = null;
 try {
@@ -227,10 +50,8 @@ const attractionLd = {
   description: `Comprehensive visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport, facilities and itineraries.`,
   url: `https://${DOMAIN}`,
   image: [ogImage],
-  isAccessibleForFree: true,
   address: {
     '@type': 'PostalAddress',
-    streetAddress: d.fullName,
     addressLocality: d.city,
     addressRegion: d.region,
     postalCode: d.postal,
@@ -238,29 +59,24 @@ const attractionLd = {
   },
   geo: { '@type': 'GeoCoordinates', latitude: d.lat, longitude: d.lng },
   hasMap: d.mapsUrl,
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: d.rating,
-    reviewCount: d.reviews,
-    bestRating: 5
-  },
-  sameAs: [d.mapsUrl, d.govtUrl, d.punjabUrl]
+  sameAs: [d.mapsUrl]
 };
 
 const faqLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
-    [`Where is ${d.fullName} located?`, `${d.fullName} is located inside Iqbal Park in the Walled City of ${d.city}, ${d.region}, ${d.country}, near ${d.nearby1} and ${d.nearby2}.`],
-    [`Is ${d.shortName} free to visit?`, `Yes, ${d.fullName} is a public national monument and is free to visit year-round. A small ticket may apply for some facilities within the surrounding Iqbal Park grounds.`],
+    [`Where is ${d.fullName} located?`, `${d.fullName} is located in Greater Iqbal Park near the Walled City of ${d.city}, ${d.region}, ${d.country}, near ${d.nearby1} and ${d.nearby2}.`],
+    [`Is ${d.shortName} free to visit?`, `Current ordinary admission fees were not established from a dated operator notice. Confirm monument access, Greater Iqbal Park entry and individual facilities separately; do not assume year-round free access.`],
     [`What is ${d.fullName}?`, `${d.fullName} is the national monument of ${d.country}, built to commemorate the Lahore Resolution of 1940 that paved the way for an independent state.`],
-    [`When was ${d.fullName} built?`, `The foundation stone was laid on 23 March 1940 (the date of the Lahore Resolution), and the monument was completed between 1960 and 1968.`],
-    [`What are the best times to visit ${d.shortName}?`, `The cooler, clearer months from late October to March are the most comfortable. Mornings and after sunset are the most pleasant parts of the day in every season.`],
-    [`How do I reach ${d.fullName}?`, `It sits inside Iqbal Park in the Walled City of ${d.city}. App-based ride-hailing or metered taxis can drop you near the park gates; the final walk to the monument is on foot through the park.`],
-    [`What other landmarks are nearby?`, `Within walking distance you will find ${d.nearby1}, ${d.nearby2}, the Walled City of ${d.city}, Wazir Khan Mosque and the Shahi Hammam.`],
+    [`When was ${d.fullName} built?`, `Construction began on 23 March 1960 and the monument opened in October 1968. The Lahore Resolution dates to 1940; it is not the foundation date.`],
+    [`What are the best times to visit ${d.shortName}?`, `Choose a currently permitted visitor time after checking the forecast, heat and air-quality warnings. Pleasant light or cooler weather does not establish opening hours or night access.`],
+    [`How do I reach ${d.fullName}?`, `It sits in Greater Iqbal Park near the Walled City of ${d.city}. App-based ride-hailing or metered taxis can drop you near the park gates; the final walk to the monument is on foot through the park.`],
+    [`What other landmarks are nearby?`, `Lahore Fort and Badshahi Mosque are separate nearby destinations. Delhi Gate, Wazir Khan Mosque and Shahi Hammam require their own route and visiting checks; no short continuous walk is promised.`],
     [`What is the weather like in ${d.city}?`, `${d.city} has a humid subtropical climate: very hot pre-monsoon summers (May–June), a warm monsoon (July–September), and mild, dry winters (December–February) that can bring seasonal smog.`],
-    [`Is parking available at ${d.shortName}?`, `Designated car and motorcycle parking areas are available inside Iqbal Park; the narrow old-city streets around the Walled City fill up quickly, so allow extra time.`],
-    [`How much time should I plan for a visit?`, `A focused monument-and-park visit takes about half a day; a full day lets you combine it with the Walled City, Badshahi Mosque and Lahore Fort.`]
+    [`Is parking available at ${d.shortName}?`, `Ask the park operator about the current parking entrance, charges and available spaces; no bay or vehicle access is guaranteed by this guide.`],
+    [`How much time should I plan for a visit?`, `Keep the visit flexible around confirmed access, weather and your pace. A half-day or full-day combination is a planning idea, not a measured itinerary or a guarantee that all sites are open.`],
+    [`What are the current opening hours?`, `No visitor hours were displayed in the Google Maps snapshot checked 29 October 2026, and a current operator-confirmed timetable was not established. Confirm Greater Iqbal Park gates, monument/tower access and any individual facilities separately with Punjab PHA before travelling. Do not assume 24-hour or nighttime access.`],
   ].map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } }))
 };
 ---
@@ -271,10 +87,10 @@ const faqLd = {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{d.fullName} {d.city} — Visitor Guide: History, Timings, Entry Fee &amp; How to Reach</title>
-  <meta name="description" content={`Plan your visit to ${d.fullName} (${d.urduName}) in ${d.city}, ${d.region}, ${d.country}. Find updated timings, entry fee, history, location map, transport options and visitor tips.`} />
+  <meta name="description" content={`Plan your visit to ${d.fullName} (${d.urduName}) in ${d.city}, ${d.region}, ${d.country}. Check the limits of confirmed timings and entry fees, monument history, location, transport and visitor planning.`} />
   <link rel="canonical" href={canonical} />
   <meta property="og:title" content={`${d.fullName} - ${d.city} Travel Guide`} />
-  <meta property="og:description" content={`Official visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport and itineraries.`} />
+  <meta property="og:description" content={`Independent visitor guide to ${d.fullName} in ${d.city}, ${d.region}, ${d.country}: history, weather, transport and itineraries.`} />
   <meta property="og:url" content={canonical} />
   <meta property="og:type" content="website" />
   <meta property="og:image" content={ogImage} />
@@ -286,9 +102,9 @@ const faqLd = {
   <link rel="icon" href="/favicon-32.png" sizes="32x32" />
   <link rel="icon" href="/favicon-16.png" sizes="16x16" />
   <link rel="apple-touch-icon" href="/favicon-180.png" />
-  <script type="application/ld+json" set:html={JSON.stringify(attractionLd)} />
-  <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HXM22WWPKP"></script>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(attractionLd)} />
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-HXM22WWPKP"></script>
   <script is:inline>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments)}
@@ -297,6 +113,7 @@ const faqLd = {
   </script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to visitor information</a>
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
   <symbol id="w-clear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
     <circle cx="12" cy="12" r="4"/><g><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.5" y2="4.5"/></g>
@@ -322,14 +139,15 @@ const faqLd = {
 </svg>
 <div class="ornament"></div>
 <header class="hero">
-  <nav class="nav">
+  <nav class="nav" aria-label="Main navigation">
     <div class="shell nav-inner">
       <a class="brand" href="#top" aria-label={`${d.fullName} home`}>
         <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1f1713"/><path d="M10 51V25h8v-8h8v8h12v-8h8v8h8v26H10Zm10 0V35h24v16" fill="#c99a48"/><path d="M26 51V39h12v12" fill="#8e3b24"/></svg>
         <span>{d.fullName}</span>
       </a>
-      <div class="nav-links">
-        <a href="#about">About</a><a href="#weather">Weather</a><a href="#getting-there">Getting there</a>
+      <button class="nav-toggle" type="button" aria-controls="site-nav-links" aria-expanded="false" hidden>Menu</button>
+      <div class="nav-links" id="site-nav-links">
+        <a href="#visit">Timings &amp; fees</a><a href="#about">About</a><a href="#weather">Weather</a><a href="#getting-there">Getting there</a>
         <a href="#facilities">Facilities</a><a href="#seasons">Seasons</a><a href="#itineraries">Itineraries</a>
         <a href="#history">History</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a><a href="#sources">Sources</a>
       </div>
@@ -337,24 +155,27 @@ const faqLd = {
   </nav>
   <div class="shell hero-copy" id="top">
     <div class="kicker" style="color:#efc981">MINAR-E-PAKISTAN · {d.city} {d.postal}</div>
-    <h1>{d.fullName}<br/><span style="font-size:.5em;font-weight:700">The National Monument of {d.country} · {d.urduName}</span></h1>
+    <h1>{d.fullName}<br/><span style="font-size:.5em;font-weight:700">The National Monument of {d.country} · <span lang="ur" dir="rtl">{d.urduName}</span></span></h1>
     <p>Welcome to <strong>{d.fullName}</strong>, the iconic national monument in the heart of <strong>{d.city}</strong>, <strong>{d.region}</strong>, <strong>{d.country}</strong> — a primary hub for travellers exploring the Walled City and its Mughal heritage.</p>
     <a class="button" href="#about">Start the guide &rarr;</a>
+    <p class="hero-credit">Historical photo: Zpotrick, 16 February 2011 · <a href="https://commons.wikimedia.org/wiki/File:Minar_e_Pakistan_(Lahore).jpg">source</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · displayed crop. Does not confirm current access.</p>
   </div>
 </header>
 
 <section class="facts shell">
   <div class="card mini-grid">
     <div class="fact"><span>Location</span><strong>{d.city}, {d.region}</strong><small>Walled City of {d.city}, {d.postal}</small></div>
-    <div class="fact"><span>Built</span><strong>1960 – 1968</strong><small>Foundation laid 23 March 1940</small></div>
-    <div class="fact"><span>Entry</span><strong>Free · public</strong><small>Within Iqbal Park grounds</small></div>
+    <div class="fact"><span>Built</span><strong>1960 – 1968</strong><small>Foundation laid 23 March 1960</small></div>
+    <div class="fact"><span>Entry</span><strong>Confirm fees</strong><small>Monument and park facilities differ</small></div>
   </div>
 </section>
 
+<main id="main">
+<section class="section shell" id="visit"><div class="kicker">Access checked 29 October 2026</div><h2 class="section-title">Timings and entry fees: confirm before visiting</h2><p>No hours were displayed in the checked Google Maps listing. A current operator-confirmed visitor timetable or ordinary admission tariff was not established. Check the Greater Iqbal Park gates, access to the monument or tower, and individual park facilities separately with <a href="https://pha.gop.pk/">Punjab PHA</a>. Do not assume free year-round entry, tower ascent or night access.</p><p>Lahore Division describes the surrounding Greater Iqbal Park and its lake, fountain and other facilities; that project description does not establish today’s individual operating times or prices.</p></section>
 {weather && (
   <section class="section" id="weather" style="background:#eef3f4">
     <div class="shell">
-      <div class="kicker" style="color:#2f6f7a">Live conditions in {d.city}</div>
+      <div class="kicker" style="color:#2f6f7a">Model estimate for {d.city}</div>
       <h2 class="section-title">Weather at {d.shortName}</h2>
 
       <div class="wx-basic card">
@@ -411,7 +232,7 @@ const faqLd = {
         ))}
       </div>
 
-      <p class="credits">Conditions update automatically for the monument&rsquo;s location, with a 7-day outlook. Verify shortly before travel in case of sudden changes.</p>
+      <p class="credits">Open-Meteo model forecast, not on-site observations or air-quality data. Model time: {weather.modelTime} (Asia/Karachi); retrieved {weather.fetchedAt}. Cache up to 15 minutes; reload for an update. Weather does not establish opening or facility status. <a href="https://open-meteo.com/">Open-Meteo</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
     </div>
   </section>
 )}
@@ -420,7 +241,7 @@ const faqLd = {
   <section class="section" id="weather" style="background:#eef3f4">
     <div class="shell">
       <h2 class="section-title">Weather at {d.shortName}</h2>
-      <p>Live conditions are momentarily unavailable — please check a weather service before you travel, and revisit shortly.</p>
+      <p>Fresh model weather is currently unavailable — please check a weather service before you travel, and revisit shortly.</p>
     </div>
   </section>
 )}
@@ -430,11 +251,11 @@ const faqLd = {
     <div>
       <div class="kicker">A monument that shaped a nation</div>
       <h2 class="section-title">About {d.fullName}</h2>
-      <p><strong>{d.fullName}</strong>, also known simply as <strong>{d.shortName}</strong>, is the national monument of {d.country}, erected to mark the Lahore Resolution of 1940. Standing at the centre of Iqbal Park in the Walled City of {d.city}, it draws visitors from across the country and the world.</p>
+      <p><strong>{d.fullName}</strong>, also known simply as <strong>{d.shortName}</strong>, is the national monument of {d.country}, erected to mark the Lahore Resolution of 1940. Standing at the centre of Greater Iqbal Park near the Walled City of {d.city}, it draws visitors from across the country and the world.</p>
       <p class="breadcrumb">{d.fullName} &rarr; {d.city} &rarr; {d.region} &rarr; {d.country}</p>
       <div><span class="chip">Mughal heritage</span><span class="chip">National monument</span><span class="chip">Photography spot</span><span class="chip">{d.city} old city</span></div>
     </div>
-    <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt={`${d.nearby2} near ${d.shortName}, ${d.city}`} loading="lazy"/><figcaption class="credits">Nearby landmark: {d.nearby2}, {d.city} — image via Wikimedia Commons</figcaption></figure>
+    <figure class="photo-frame"><img src="/images/badshahi.jpg" width="1280" height="891" alt="Badshahi Mosque, a separate nearby landmark in Lahore" loading="lazy"/><figcaption class="credits">Badshahi Mosque · Ujphotos, 19 May 2013 · <a href="https://commons.wikimedia.org/wiki/File:Badshahi_Mosque,_Lahore._King%27s_Mosque.jpg">source</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · Commons resize; display may crop. Historical photo, not current-access evidence.</figcaption></figure>
   </div>
 </section>
 
@@ -453,28 +274,27 @@ const faqLd = {
 <section class="section shell" id="landmarks">
   <div class="kicker">Explore the surroundings</div>
   <h2 class="section-title">Landmarks &amp; Attractions Around {d.shortName}</h2>
-  <p>When visiting <strong>{d.fullName}</strong>, travellers can easily explore surrounding historical landmarks and points of interest, including <strong>{d.nearby1}</strong> and <strong>{d.nearby2}</strong>.</p>
+  <p>When visiting <strong>{d.fullName}</strong>, travellers can plan separate visits to surrounding historical landmarks and points of interest, including <strong>{d.nearby1}</strong> and <strong>{d.nearby2}</strong>.</p>
   <div class="gallery">
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/View_of_Delhi_Gate%2C_Lahore.jpg/1280px-View_of_Delhi_Gate%2C_Lahore.jpg" alt={`Delhi Gate, Walled City of ${d.city}`} loading="lazy"/>
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt={d.nearby2} loading="lazy"/>
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Wazir_khan_mosque_entry.jpg/1280px-Wazir_khan_mosque_entry.jpg" alt="Wazir Khan Mosque, Walled City of Lahore" loading="lazy"/>
-  </div>
-  <p class="credits">Images: Wikimedia Commons (CC). For official updates and regional tourism information, visit the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} / {d.region} Official Tourism Portal</a>.</p>
+    <figure><img src="/images/minar.jpg" width="1280" height="960" alt="Minar-e-Pakistan, photographed in 2011" loading="lazy"/><figcaption class="credits">Minar-e-Pakistan · Zpotrick, 16 February 2011 · <a href="https://commons.wikimedia.org/wiki/File:Minar_e_Pakistan_(Lahore).jpg">source</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · unmodified file, display may crop.</figcaption></figure>
+    <figure><img src="/images/badshahi.jpg" width="1280" height="891" alt="Badshahi Mosque, a separate attraction" loading="lazy"/><figcaption class="credits">Badshahi Mosque · Ujphotos, 19 May 2013 · <a href="https://commons.wikimedia.org/wiki/File:Badshahi_Mosque,_Lahore._King%27s_Mosque.jpg">source</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · Commons resize, display may crop.</figcaption></figure>
+    <figure><img src="/images/wazir.jpg" width="1280" height="1264" alt="Wazir Khan Mosque viewed through its entrance, a separate old-city destination" loading="lazy"/><figcaption class="credits">Wazir Khan Mosque · Shahbaz Aslam, 6 February 2016 · <a href="https://commons.wikimedia.org/wiki/File:Wazir_khan_mosque_entry.jpg">source</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> · Commons resize, display may crop.</figcaption></figure>
+  </div><p class="credits">Historical architectural photos do not establish current access or facilities. Delhi Gate remains a separate destination; its source photograph is <a href="https://commons.wikimedia.org/wiki/File:View_of_Delhi_Gate,_Lahore.jpg">credited to Umaimaumi, CC BY-SA 4.0</a> but is not delivered here. The photographed people do not endorse this guide.</p>
 </section>
 
 <section class="section" id="getting-there" style="background:#f1e7d4">
   <div class="shell">
     <div class="kicker">Plan your arrival</div>
     <h2 class="section-title">Getting to {d.shortName}</h2>
-    <p>Iqbal Park and the monument sit in the dense heart of the Walled City. The last stretch is pedestrian, so most visitors are dropped at a park gate and walk in. Below are the common ways in.</p>
+    <p>Greater Iqbal Park and the monument lie near the Walled City. The last stretch is pedestrian, so most visitors are dropped at a park gate and walk in. Below are the common ways in.</p>
     <div class="info-grid">
       <div class="card">
         <h3 class="block-title">From the airport</h3>
-        <p>{d.city}&rsquo;s international airport (Allama Iqbal International) lies roughly 25–30 km east of the old city. The most direct option is an app-based ride or metered taxi, which takes about 40–60 minutes depending on traffic. City buses and the metro network can also reach the old city with one or two transfers if you are travelling light.</p>
+        <p>For Allama Iqbal International Airport, check the current pickup rules and available transport directly with your provider. Confirm fare, luggage, traffic allowance and the final permitted park entrance; no fixed journey time or direct airport transit service is promised.</p>
       </div>
       <div class="card">
         <h3 class="block-title">Public transit</h3>
-        <p>{d.city} runs a bus rapid transit line (Metrobus) along the main boulevards, with stops a short walk or auto-rickshaw ride from the Walled City, and an elevated metro train (Orange Line) with stations within a few kilometres of the old city. From the nearest transit stop, a short taxi or rickshaw completes the trip to a park gate.</p>
+        <p>Check current Metrobus, Orange Line or local bus routes and service times with the relevant operator. Verify the actual stop and safe last connection to the permitted park entrance, including the return service; do not assume every line stops at the monument.</p>
       </div>
       <div class="card">
         <h3 class="block-title">Taxis &amp; ride-hailing</h3>
@@ -482,7 +302,7 @@ const faqLd = {
       </div>
       <div class="card">
         <h3 class="block-title">Driving &amp; parking</h3>
-        <p>If you drive, use the designated car and motorcycle parking areas inside Iqbal Park. The surrounding old-city streets are narrow and fill quickly on weekends and holidays, so arrive early. Ride-sharing drop-offs are easiest near the main gates.</p>
+        <p>Confirm the currently permitted approach road, parking entrance, charges and spaces with the park before driving. Agree a lawful pickup and return point; no bay or private gate access is guaranteed.</p>
       </div>
     </div>
   </div>
@@ -493,12 +313,12 @@ const faqLd = {
   <h2 class="section-title">Visitor Services &amp; Surrounding Facilities</h2>
   <p>This is an independent visitor-information resource. We describe the <em>types</em> of services available so you can plan; we do not endorse specific businesses. Availability and quality vary, so confirm on arrival.</p>
   <div class="info-grid">
-    <div class="card"><h3 class="block-title">Restrooms (WC)</h3><p>Public restrooms are available within Iqbal Park near the main gates and the food-court area. Carry small change and tissues as a precaution.</p></div>
-    <div class="card"><h3 class="block-title">Parking</h3><p>Designated parking areas for cars and motorcycles are provided inside the park. Expect fuller lots on weekends, public holidays and during evening illumination hours.</p></div>
-    <div class="card"><h3 class="block-title">Food &amp; drink</h3><p>A range of food stalls, tea houses and casual restaurants operate around the Walled City and inside the park grounds. Try local snacks from busy, reputable stalls and drink bottled or sealed water.</p></div>
+    <div class="card"><h3 class="block-title">Restrooms (WC)</h3><p>Ask which toilets are open, their location, charge and accessibility before relying on them. Carry tissues and hygiene supplies.</p></div>
+    <div class="card"><h3 class="block-title">Parking</h3><p>Ask the operator about current parking locations, entry rules, charges and spaces. Evening illumination is not a confirmed visitor timetable.</p></div>
+    <div class="card"><h3 class="block-title">Food &amp; drink</h3><p>Lahore Division lists a food court in the wider park project. Verify what is open on your date, check food preparation and ingredients, and carry drinking water.</p></div>
     <div class="card"><h3 class="block-title">Lodging</h3><p>{d.city} offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and the central districts. Book ahead during peak travel seasons.</p></div>
     <div class="card"><h3 class="block-title">Shopping</h3><p>The bazaars and markets of the Walled City are known for textiles, handicrafts, spices and souvenirs. Bargaining is customary; keep valuables secure in crowded lanes.</p></div>
-    <div class="card"><h3 class="block-title">Fuel &amp; EV charging</h3><p>Petrol stations and electric-vehicle charging points are available along the major approach roads. Top up before entering the old city, where fuel stops are limited.</p></div>
+    <div class="card"><h3 class="block-title">Fuel &amp; EV charging</h3><p>Check a current fuel or charging provider on your actual route before relying on it; no particular charging point, connector or opening time has been verified.</p></div>
   </div>
 </section>
 
@@ -506,20 +326,13 @@ const faqLd = {
   <div class="shell">
     <div class="kicker" style="color:#e5b55f">When to come</div>
     <h2 class="section-title">Seasonal Visiting Strategy</h2>
-    <p>Based on {d.city}&rsquo;s long-term climatological normals (multi-decade means), the monument and its park change a great deal through the year. Use the table to match your visit to weather, comfort and crowds.</p>
-    <div class="table-wrap card">
-      <table class="strategy">
-        <thead><tr><th>Season</th><th>Weather &amp; comfort</th><th>Crowds</th><th>Air &amp; environment</th><th>Recommended focus</th></tr></thead>
-        <tbody>
-          <tr><td><b>Dec – Feb</b><br/><small>Winter</small></td><td>Mild and dry, days 7–20&deg;C; cold mornings/evenings.</td><td>Moderate; peaks on weekends and holidays.</td><td>Smog season — air quality often poorest of the year (Nov–Jan).</td><td>Daytime walks and photography on clear days; sensitive groups check air quality.</td></tr>
-          <tr><td><b>Mar – Apr</b><br/><small>Spring</small></td><td>Warm and pleasant, 20–35&deg;C; occasional dust/haze.</td><td>Rising as schools break.</td><td>Generally good; occasional haze.</td><td>All-round visiting; comfortable for families and long walks.</td></tr>
-          <tr><td><b>May – Jun</b><br/><small>Pre-monsoon</small></td><td>Very hot, 35–45&deg;C; intense sun midday.</td><td>Lower in midday heat; evenings busier.</td><td>Hot, dry, dusty; poor air on calm days.</td><td>Mornings and after sunset only; hydrate and seek shade.</td></tr>
-          <tr><td><b>Jul – Sep</b><br/><small>Monsoon</small></td><td>Hot and humid; heavy showers and afternoon storms.</td><td>Variable; drops during heavy rain.</td><td>Lush, green park; paths can be slippery after rain.</td><td>Pack rain gear; watch forecasts for thunderstorms.</td></tr>
-          <tr><td><b>Oct – Nov</b><br/><small>Autumn</small></td><td>Most comfortable, 20–32&deg;C; clear skies return.</td><td>Higher as weather improves.</td><td>Air quality recovers; pleasant evenings.</td><td>Ideal window — combine monument with the old city.</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="credits">Climate figures are indicative long-term norms for {d.city}; actual conditions vary year to year and within a season. The park&rsquo;s lawns and lake attract birds and peacocks — observe wildlife from a distance and do not feed it.</p>
+    <p>These are planning prompts, not a climate-normal dataset or a guarantee of comfortable weather. Check current Lahore forecasts, official warnings and air quality for your date; a weather forecast does not measure pollution.</p>
+    <div class="table-wrap card"><table class="strategy"><thead><tr><th>Planning period</th><th>What to check</th><th>Preparation</th></tr></thead><tbody>
+      <tr><td>Winter</td><td>Cold, fog and current air quality</td><td>Bring suitable layers and check visibility and pollution warnings.</td></tr>
+      <tr><td>Spring and autumn</td><td>Actual heat, rain, dust and air quality</td><td>Do not assume a clear or comfortable day from the season alone.</td></tr>
+      <tr><td>Hot-weather periods</td><td>Heat and UV warnings</td><td>Limit heat exposure, carry water and identify a suitable rest alternative.</td></tr>
+      <tr><td>Rainy periods</td><td>Rain, thunderstorms, drainage and path condition</td><td>Postpone exposed plans when necessary and follow official instructions.</td></tr>
+    </tbody></table></div><p class="credits">Seasonal preparation never extends gate hours or confirms facility operation. Observe any wildlife from a distance and do not feed it.</p>
   </div>
 </section>
 
@@ -530,15 +343,15 @@ const faqLd = {
 
   <h3 class="block-title">By type of traveller</h3>
   <div class="info-grid">
-    <div class="card"><h4 class="route-name">Families with children</h4><p>Flat, paved park paths, shade, restrooms and food kiosks make this easy. Visit in the morning, let children enjoy the open lawns and the park lake, and keep the walk short. Strollers are manageable on main paths.</p></div>
-    <div class="card"><h4 class="route-name">Photography &amp; nature</h4><p>Arrive at sunrise or stay for sunset when the tower is most photogenic. Capture the symmetrical minaret, its reflection in the park lake, and the Mughal skyline beyond. A tripod is useful in low light.</p></div>
-    <div class="card"><h4 class="route-name">Low-effort / accessible</h4><p>Approach by vehicle to the nearest gate, use paved paths and benches, and keep to a compact loop close to the monument. Avoid the midday heat and crowded weekend evenings.</p></div>
+    <div class="card"><h4 class="route-name">Families with children</h4><p>Confirm a usable route, barriers, toilets and a rest option before taking children. Keep children away from water and restricted areas; a flat, shaded or stroller-accessible circuit is not guaranteed.</p></div>
+    <div class="card"><h4 class="route-name">Photography &amp; nature</h4><p>Confirm permitted visitor hours and photography or tripod rules before planning a shoot. Sunrise, sunset or historical illumination photos do not authorize access outside the current gate times.</p></div>
+    <div class="card"><h4 class="route-name">Low-effort / accessible</h4><p>Maps indicated an accessible entrance on 29 October 2026, but the exact gate and route have not been independently confirmed. Ask about steps, surfaces, seating, assistance and distance for your needs before travelling.</p></div>
   </div>
 
   <h3 class="block-title" style="margin-top:2.5rem">General routes</h3>
   <div class="info-grid">
-    <div class="card"><h4 class="route-name">Half-day</h4><p>Enter Iqbal Park in the morning &rarr; visit the monument and gardens &rarr; walk a short stretch of the Walled City to Wazir Khan Mosque and Delhi Gate &rarr; return. About 3–4 hours at a relaxed pace.</p></div>
-    <div class="card"><h4 class="route-name">Full-day</h4><p>Morning at the monument and Iqbal Park &rarr; old-city walk (Delhi Gate, Wazir Khan Mosque, Shahi Hammam) &rarr; lunch in the Walled City &rarr; afternoon at Badshahi Mosque and Lahore Fort &rarr; return in the evening for the illuminated tower. 7–8 hours.</p></div>
+    <div class="card"><h4 class="route-name">Half-day</h4><p>Consider the monument and permitted park areas first, then one separately confirmed old-city destination such as Delhi Gate or Wazir Khan Mosque. Check routes and hours rather than relying on a measured half-day circuit.</p></div>
+    <div class="card"><h4 class="route-name">Full-day</h4><p>A full-day idea can combine the monument with selected old-city sites, Badshahi Mosque or Lahore Fort. Each has separate entry rules, hours and transport; do not assume all fit in one day or that an evening return is allowed.</p></div>
   </div>
 </section>
 
@@ -550,10 +363,10 @@ const faqLd = {
       <div>
         <p><strong>{d.fullName}</strong> stands on the ground where, on 23 March 1940, the All-India Muslim League passed the Lahore Resolution — the formal demand for a separate homeland for the Muslims of the subcontinent. The site was then part of Minto Park, later renamed Iqbal Park after the poet-philosopher Allama Iqbal.</p>
         <p>The foundation stone was laid on the same date in 1960, and the monument was completed in 1968. It was designed by architect Nasreddin Murat-Khan, who migrated to Pakistan and shaped a structure that blends Islamic, Mughal and modernist motifs.</p>
-        <p>The tower rises about 70 metres through a series of petal-shaped platforms &ldquo;unfolding&rdquo; from the ground — widely read as a symbol of a nation coming into being. Inscriptions at the base include the text of the Pakistan Resolution and verses, and the different stone and marble tiers are said to reflect the stages of the struggle.</p>
+        <p>The tower rises above a series of petal-shaped platforms &ldquo;unfolding&rdquo; from the ground — widely read as a symbol of a nation coming into being. Inscriptions at the base include the text of the Pakistan Resolution and verses, and the different stone and marble tiers are said to reflect the stages of the struggle.</p>
         <p>Today the monument is a civic gathering point, a photography landmark and a reminder of the political moment that reshaped the region.</p>
       </div>
-      <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Minar-e-Pakistan%2C_Lahore.jpg/1280px-Minar-e-Pakistan%2C_Lahore.jpg" alt={`${d.fullName}, ${d.city}`} loading="lazy"/><figcaption class="credits">{d.fullName}, {d.city} — image via Wikimedia Commons</figcaption></figure>
+      <figure class="photo-frame"><img src="/images/minar.jpg" width="1280" height="960" alt="Minar-e-Pakistan, historical 2011 photograph" loading="lazy"/><figcaption class="credits">Zpotrick · 16 February 2011 · <a href="https://commons.wikimedia.org/wiki/File:Minar_e_Pakistan_(Lahore).jpg">source</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> · unmodified file; display may crop. Does not establish current tower access.</figcaption></figure>
     </div>
   </div>
 </section>
@@ -579,46 +392,83 @@ const faqLd = {
       <span class="review-score">{d.rating.toFixed(1)}</span>
       <span class="review-meta">out of 5<br/><strong>{d.reviews.toLocaleString()} reviews</strong></span>
     </div>
-    <p class="review-note">评分与评价数同步自谷歌地图（Google Maps）用户评价 · {d.syncMonth} · 点击查看谷歌地图全部评价↗</p>
-    <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
-    <p style="margin-top:1rem"><a class="button" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">在谷歌地图查看全部评价</a></p>
+    <p class="review-note">Google Maps snapshot checked {d.syncMonth}. Values may change; this guide does not collect reviews or synchronize automatically.</p>
+    <p class="src-note">Third-party rating shown with attribution; no review text is copied.</p>
+    <p style="margin-top:1rem"><a class="button" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">View the Google Maps listing</a></p>
   </div>
 </section>
 
 <section class="section shell" id="faq">
   <div class="kicker">FAQ</div>
   <h2 class="section-title">Frequently Asked Questions</h2>
-  <details open><summary>Where is {d.fullName} located?</summary><p>{d.fullName} is located inside Iqbal Park in the Walled City of {d.city}, {d.region}, {d.country}, near {d.nearby1} and {d.nearby2}.</p></details>
-  <details><summary>Is {d.shortName} free to visit?</summary><p>Yes, {d.fullName} is a public national monument and is free to visit year-round. A small ticket may apply for some facilities within the surrounding Iqbal Park grounds.</p></details>
-  <details><summary>What is {d.fullName}?</summary><p>{d.fullName} is the national monument of {d.country}, built to commemorate the Lahore Resolution of 1940 that paved the way for an independent state.</p></details>
-  <details><summary>When was {d.fullName} built?</summary><p>The foundation stone was laid on 23 March 1940 (the date of the Lahore Resolution), and the monument was completed between 1960 and 1968.</p></details>
-  <details><summary>What are the best times to visit {d.shortName}?</summary><p>The cooler, clearer months from late October to March are the most comfortable. Mornings and after sunset are the most pleasant parts of the day in every season.</p></details>
-  <details><summary>How do I reach {d.fullName}?</summary><p>It sits inside Iqbal Park in the Walled City of {d.city}. App-based ride-hailing or metered taxis can drop you near the park gates; the final walk to the monument is on foot through the park.</p></details>
-  <details><summary>What other landmarks are nearby?</summary><p>Within walking distance you will find {d.nearby1}, {d.nearby2}, the Walled City of {d.city}, Wazir Khan Mosque and the Shahi Hammam.</p></details>
-  <details><summary>What is the weather like in {d.city}?</summary><p>{d.city} has a humid subtropical climate: very hot pre-monsoon summers (May–June), a warm monsoon (July–September), and mild, dry winters (December–February) that can bring seasonal smog.</p></details>
-  <details><summary>Is parking available at {d.shortName}?</summary><p>Designated car and motorcycle parking areas are available inside Iqbal Park; the narrow old-city streets around the Walled City fill up quickly, so allow extra time.</p></details>
-  <details><summary>How much time should I plan for a visit?</summary><p>A focused monument-and-park visit takes about half a day; a full day lets you combine it with the Walled City, Badshahi Mosque and Lahore Fort.</p></details>
+  {faqLd.mainEntity.map((item, i) => <details open={i === 0}><summary>{item.name}</summary><p>{item.acceptedAnswer.text}</p></details>)}
 </section>
 
 <section class="section" id="sources" style="background:#d8c29e">
   <div class="shell">
     <h2 class="section-title">Sources &amp; Image Credits</h2>
-    <p><strong>评价 · 同步时间 {d.syncMonth}</strong></p>
-    <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
-    <p>Rating ({d.rating.toFixed(1)}/5) and review count ({d.reviews.toLocaleString()}) are mirrored from Google Maps user reviews and may change over time; they are not an official government rating. See all reviews on <a href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Google Maps</a>.</p>
-    <p class="credits">Historical and practical information is compiled from public tourism references including the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} Tourism Portal</a> and the <a href={d.punjabUrl} target="_blank" rel="noopener noreferrer">Government of {d.region}</a>, along with well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses).</p>
+    <p><strong>Sources checked {d.syncMonth}</strong></p>
+    <p class="src-note">Third-party rating shown with attribution; no review text is copied.</p>
+    <p>Rating ({d.rating.toFixed(1)}/5) and review count ({d.reviews.toLocaleString()}) are a dated third-party Google Maps snapshot and may change over time; they are not an official government rating. See all reviews on <a href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Google Maps</a>.</p>
+    <p>Historical dates: <a href="https://www.app.com.pk/domestic/decoding-symbolism-in-minar-e-pakistan-architecture/">Associated Press of Pakistan — construction began 23 March 1960, opening October 1968</a>. Park context: <a href="https://lahoredivision.punjab.gov.pk/projects-lahore">Lahore Division — Greater Iqbal Park project description</a>. Current access enquiries: <a href="https://pha.gop.pk/">Punjab PHA</a>. These sources do not establish a current visitor timetable or fee tariff. General tourism portals are background references, not site-specific operating confirmation.</p>
+    <p class="credits">Hero/history/gallery Minar photo: Zpotrick, 16 February 2011, <a href="https://commons.wikimedia.org/wiki/File:Minar_e_Pakistan_(Lahore).jpg">source</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a>. File unmodified; hero and display may crop under the same licence. Every delivered photo has its own caption. Images are historical and do not establish current conditions; no endorsement is implied. <a href="/images/CREDITS.txt">Full image manifest</a>.</p>
   </div>
 </section>
 
+<section class="section shell" id="privacy"><h2 class="section-title">Privacy and measurement</h2><p>This independent information guide has no accounts, booking, payment or contact form. Cloudflare hosts the pages and processes technical request data for delivery and security. The site loads Google Analytics automatically; its browser script may send visit/page-view/device measurement and use cookies when allowed by browser and network policy. This page has no analytics choice control. Blocking scripts or clearing cookies does not unload an already loaded script or guarantee removal of Google’s cookies. See <a href="https://policies.google.com/privacy">Google’s privacy policy</a>.</p><p>No Cloudflare Insights browser beacon was found in the HTML captures reviewed on 29 October 2026. Hosting settings can independently enable Cloudflare Web Analytics browser beacons for visits, page views and performance, with dimensions such as page/referrer, country, browser, device and operating system. That service is separate from Google Analytics; there is no page switch for hosting measurement. Consult <a href="https://developers.cloudflare.com/web-analytics/about/">Cloudflare Web Analytics</a> and <a href="https://developers.cloudflare.com/web-analytics/data-metrics/">its metrics documentation</a>; absence in one capture is not proof that measurement can never occur.</p><p>The embedded map contacts Google when loaded. Photos, styles and icons on this version are local. The server requests Open-Meteo using fixed Lahore coordinates, not your device location; the page does not request geolocation. Opening external links contacts those providers.</p></section>
+</main>
 <footer class="footer">
   <div class="shell">
     <div>
       <img src="/logo.svg" alt={`${d.fullName} logo`} width="240" height="72"/>
+      <p><a href="#privacy">Privacy and measurement</a></p>
       <p>This is an unofficial information website and is not affiliated with or endorsed by any government authority.</p>
     </div>
     <div><b>Quick links</b><p><a href="#about">About</a> · <a href="#weather">Weather</a> · <a href="#getting-there">Getting there</a> · <a href="#facilities">Facilities</a> · <a href="#seasons">Seasons</a> · <a href="#itineraries">Itineraries</a> · <a href="#history">History</a> · <a href="#reviews">Reviews</a> · <a href="#faq">FAQ</a> · <a href="#sources">Sources</a></p></div>
   </div>
 </footer>
+
+<script is:inline>
+  (() => {
+    const toggle = document.querySelector('.nav-toggle');
+    const links = document.getElementById('site-nav-links');
+    if (!toggle || !links) return;
+    const mobile = window.matchMedia('(max-width: 820px)');
+    function close(restoreFocus = false) {
+      links.hidden = mobile.matches;
+      toggle.setAttribute('aria-expanded', 'false');
+      if (restoreFocus && mobile.matches) toggle.focus();
+    }
+    function sync() {
+      const focusWasInLinks = links.contains(document.activeElement);
+      const focusWasToggle = document.activeElement === toggle;
+      toggle.hidden = !mobile.matches;
+      close(focusWasInLinks);
+      if (!mobile.matches && focusWasToggle) links.querySelector('a')?.focus();
+    }
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      links.hidden = expanded;
+      toggle.setAttribute('aria-expanded', String(!expanded));
+    });
+    links.addEventListener('click', (event) => {
+      const link = event.target.closest('a[href^="#"]');
+      if (!link || !mobile.matches) return;
+      const target = document.getElementById(link.getAttribute('href').slice(1));
+      close();
+      if (target) { target.setAttribute('tabindex', '-1'); target.focus({preventScroll:true}); }
+      // Preserve the anchor's normal fragment/history/scroll behavior.
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && mobile.matches && !links.hidden) {
+        event.preventDefault();
+        close(true);
+      }
+    });
+    mobile.addEventListener('change', sync);
+    sync();
+  })();
+</script>
 
 <script is:inline>
   if ('serviceWorker' in navigator) {

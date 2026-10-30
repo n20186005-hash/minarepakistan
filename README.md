@@ -1,42 +1,20 @@
-# Walled City of Lahore — Astro site
+# Minar-e-Pakistan independent visitor guide
 
-Single-page Urdu RTL tourism site for the Walled City of Lahore.
+The existing English single-page guide includes the Urdu place name with language/direction markup. It does not have a separate Urdu translation route. Astro server output, Cloudflare adapter, Tailwind Vite integration and server-side model weather remain.
 
-## Stack
-- Astro 7.3.3
-- Tailwind CSS 4.3.3 via `@tailwindcss/vite`
-- TypeScript 6.0.3 (kept on 6.x because current `@astrojs/check` does not support TypeScript 7's native compiler API)
-- `@astrojs/cloudflare` 14.3.2
-- pnpm 12.4.2
-- Node 22.23.2 LTS
+Use Node22.23.2 and pnpm12.4.2 with the committed frozen lock/workspace allowances. Dependencies are unchanged.
 
-## Domain / site URL
-There is exactly one source of truth for the site's public URL in `astro.config.mjs`:
-
-```js
-const site = process.env.SITE_URL?.trim() || undefined;
-```
-
-Set `SITE_URL=https://your-real-domain.com` at build time. When it is absent:
-- build is designed to continue;
-- canonical / `og:url` / absolute JSON-LD URL are omitted;
-- sitemap integration is not enabled;
-- no placeholder domain is inserted.
-
-## Commands
-```bash
-corepack enable
-corepack prepare pnpm@12.4.2 --activate
+```sh
 pnpm install --frozen-lockfile
-pnpm check
-pnpm build
+pnpm run check
+pnpm run build
+npx wrangler dev --ip 127.0.0.1
 ```
 
-## Cloudflare Workers
-`wrangler.jsonc` targets `./dist/_worker.js/index.js` and serves static assets from `./dist`.
+Observed production build/deploy commands are pnpm run build and npx wrangler deploy. Local validation is not publication approval. The root config and generated entry must include the canonical/error guard before asset serving; Worker-first delivery is required.
 
-## GA4
-Configured with `G-HXM22WWPKP`.
+Current gate hours, ordinary admission, tower ascent and facility access are not established by historical park descriptions. Maps rating is a dated third-party snapshot, excluded from rating markup. Construction began in1960; the Lahore Resolution is1940. See the public source section and IMAGE-CREDITS.md.
 
-## Note about photos
-The source page uses real Wikimedia Commons photographs. This runtime could not download image binaries due container egress/DNS restrictions, so the delivered source currently references Wikimedia thumbnail URLs. See `IMAGE-CREDITS.md` for exact files and licenses.
+Weather is an Open-Meteo model estimate, retrieved server-side with a bounded timeout and fifteen-minute memory cache; HTML is not cached, and failure displays an unavailable state. It is not air-quality data or live on-site observation. The retired service worker clears only this site's old mep-* caches and stops intercepting traffic.
+
+Privacy describes automatic legacy Google Analytics loading, hosting, embedded map and server weather requests. No page analytics toggle is claimed. Production policy and browser settings may restrict measurement requests.

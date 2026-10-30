@@ -15,12 +15,12 @@ img{display:block;max-width:100%}
 .section-title{font-size:clamp(1.8rem,3.4vw,3rem);line-height:1.2;margin:.25rem 0 1rem;font-weight:800}
 .mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
 .chip{display:inline-flex;border:1px solid #b89c72;border-radius:999px;padding:.3rem .85rem;background:#fff7e8;margin:.2rem;font-size:.85rem}
-.hero{min-height:88vh;position:relative;display:grid;align-items:end;background:linear-gradient(180deg,rgba(20,13,9,.15),rgba(20,13,9,.82)),url('https://commons.wikimedia.org/wiki/Special:FilePath/Minar-e-Pakistan.jpg?width=1600') center/cover,linear-gradient(135deg,#8e3b24,#c99a48)}
-.hero-copy{color:#fff;padding:8rem 0 5rem}
+.hero{min-height:88vh;position:relative;display:block;background:linear-gradient(180deg,rgba(20,13,9,.78),rgba(20,13,9,.86)),url('/images/minar.jpg') center/cover,linear-gradient(135deg,#8e3b24,#c99a48)}
+.hero-copy{color:#fff;padding:4rem 0 5rem}
 .hero h1{font-size:clamp(2.8rem,7vw,6rem);line-height:1.05;margin:0;max-width:900px}
 .hero p{font-size:1.2rem;max-width:720px}
 .breadcrumb{display:inline-block;margin-top:1rem;padding:.4rem .9rem;background:#fff7e8;border:1px dashed #b89c72;border-radius:999px;font-size:.9rem;color:var(--terracotta);font-weight:700}
-.nav{position:absolute;top:0;left:0;right:0;z-index:5;color:white;background:linear-gradient(180deg,rgba(0,0,0,.6),transparent)}
+.nav{position:relative;z-index:5;color:white;background:#17120f}
 .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 0;gap:1rem}
 .brand{display:flex;align-items:center;gap:.7rem;font-weight:900}
 .brand svg{width:40px;height:40px}
@@ -97,7 +97,9 @@ summary{cursor:pointer;font-weight:800;font-size:1.1rem}
 .wx-items{display:flex;flex-wrap:wrap;gap:.45rem}
 .wx-items .pill{background:#f2e7d0;border:1px solid #d8c39a;border-radius:999px;padding:.35rem .8rem;font-size:.85rem;color:#5a4326}
 @media(max-width:820px){
-  .nav-links{display:none}
+  .nav-links{display:flex;gap:.7rem;font-size:.9rem}
+  .nav-inner{flex-wrap:wrap}
+  .nav-links a{padding:.3rem 0}
   .mini-grid,.split,.route,.gallery,.info-grid{grid-template-columns:1fr}
   .gallery img:first-child{grid-row:auto;min-height:320px}
   .hero{min-height:74vh}
@@ -108,3 +110,16 @@ summary{cursor:pointer;font-weight:800;font-size:1.1rem}
   .wx-forecast{grid-template-columns:repeat(3,1fr)}
   .wx-advice{grid-template-columns:1fr}
 }
+
+.skip-link{position:absolute;top:-100px;left:1rem;z-index:99;background:#fff;color:#1f1713;padding:1rem}.skip-link:focus{top:1rem}
+.gallery figure{margin:0;min-width:0}.gallery img{width:100%;height:240px;object-fit:cover}.credits{font-size:.875rem;line-height:1.6} .credits a{text-decoration:underline} .photo-frame img{width:100%;height:auto} .table-wrap{overflow-x:auto} img{max-width:100%}
+
+.hero .hero-credit{font-size:.875rem;line-height:1.6;color:#fff;max-width:48rem}.hero-credit a{text-decoration:underline}
+
+.hero h1{overflow-wrap:anywhere}.nav-inner{gap:1rem}.nav-links{min-width:0}.shell{min-width:0}
+
+.nav-inner{flex-wrap:wrap}.nav-links{flex-basis:100%;width:100%;align-items:center}.nav-links a{display:inline-flex;align-items:center;min-height:44px;padding:.35rem 0}
+.nav-toggle{min-width:64px;min-height:44px;padding:.5rem .8rem;border:1px solid #e5b55f;border-radius:.4rem;background:#17120f;color:#fff;font:inherit;cursor:pointer}
+.nav-toggle[hidden],.nav-links[hidden]{display:none!important}
+.nav a:focus-visible,.nav-toggle:focus-visible{outline:3px solid #efc981;outline-offset:4px}
+@media(max-width:820px){.nav-inner{gap:.75rem}.brand{flex:1;min-width:0}.brand span{overflow-wrap:anywhere}.nav-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.25rem 1rem}.nav-links a{min-width:0;overflow-wrap:anywhere}.hero-copy{padding:2.5rem 0 4rem}}
