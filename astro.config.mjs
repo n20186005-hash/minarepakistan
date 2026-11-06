@@ -8,7 +8,7 @@ const site = process.env.SITE_URL?.trim() || 'https://minarepakistan.com';
 export default defineConfig({
   site,
   output: 'server',
-  adapter: cloudflare(),
+  adapter: cloudflare({ prerenderEnvironment: 'node' }),
   integrations: site ? [sitemap()] : [],
   vite: { plugins: [tailwindcss()] }
 });
