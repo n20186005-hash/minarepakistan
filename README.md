@@ -1,42 +1,60 @@
-# Walled City of Lahore — Astro site
+# minarepakistan.com
 
-Single-page Urdu RTL tourism site for the Walled City of Lahore.
+Independent, non-commercial English travel guide for **Minar-e-Pakistan** in Lahore, Pakistan.
+This is an unofficial third-party information site — it is not affiliated with the Government of
+Punjab, the Parks & Horticulture Authority, or any official body.
 
 ## Stack
-- Astro 7.3.3
-- Tailwind CSS 4.3.3 via `@tailwindcss/vite`
-- TypeScript 6.0.3 (kept on 6.x because current `@astrojs/check` does not support TypeScript 7's native compiler API)
-- `@astrojs/cloudflare` 14.3.2
-- pnpm 12.4.2
-- Node 22.23.2 LTS
 
-## Domain / site URL
-There is exactly one source of truth for the site's public URL in `astro.config.mjs`:
+- **Astro 7** (static, prerendered pages)
+- **@astrojs/cloudflare 14.3.2** deployed to **Cloudflare Workers**
+  (`wrangler.jsonc`: `main` is the adapter entrypoint, static assets resolve from `./dist/client`)
+- **Tailwind 4** via `@tailwindcss/vite` (only the base reset is used; component styling is hand-written in `src/styles/global.css`)
+- **@astrojs/sitemap** (enabled once `site` is set)
+- **Google Analytics 4** (`G-HXM22WWPKP`) loaded only after the visitor accepts cookies
 
-```js
-const site = process.env.SITE_URL?.trim() || undefined;
-```
+## Pages
 
-Set `SITE_URL=https://your-real-domain.com` at build time. When it is absent:
-- build is designed to continue;
-- canonical / `og:url` / absolute JSON-LD URL are omitted;
-- sitemap integration is not enabled;
-- no placeholder domain is inserted.
+- `src/pages/index.astro` — single long-form home page (hero, facts, hours, tickets, transport,
+  weather, reviews, sources, and a long-tail topic cluster).
+- `src/pages/[topic].astro` — 40 data-driven long-tail topic pages, content in `src/data/topics.ts`,
+  rendered by `src/components/TopicPage.astro` (WebPage + BreadcrumbList + FAQPage JSON-LD).
+- `src/pages/privacy.astro` / `terms.astro` / `cookies.astro` — legal pages, `noindex`, wrapped in
+  `src/components/LegalLayout.astro`.
 
-## Commands
+## Localization & language
+
+The site is **single-language (English)**. All visible copy lives in `src/pages/*`,
+`src/data/site.ts`, and `src/data/topics.ts`. Do not mix other-language strings into the source.
+
+## Facts & E-E-A-T
+
+- All monument facts (name, coordinates, rating snapshot, maps link, sources) live in one place:
+  `src/data/site.ts`.
+- Reviews are an aggregate **snapshot mirrored from Google Maps**; no individual named reviews are
+  fabricated. The sync month is `src/data/site.ts` → `syncMonth` and `src/data/topics.ts` →
+  `VERIFIED`.
+- Ticket / timings / transport details that change are labelled "confirm on site" where appropriate.
+
+## Images
+
+Image **binaries cannot be bundled** in this repo (the build container has no egress to download
+them), so all photographs are referenced from **Wikimedia Commons** thumbnail URLs. The Open Graph
+image (`OG_IMAGE` in `src/data/site.ts`) is a stable Wikimedia thumbnail of the monument.
+
+## Configuration
+
+- `astro.config.mjs` sets `site` to `https://minarepakistan.com` (override with the `SITE_URL`
+  environment variable if needed). This drives canonical URLs, absolute Open Graph tags, and the
+  sitemap.
+- `src/data/site.ts` exports `DOMAIN` and `OG_IMAGE`.
+
+## Build & deploy
+
 ```bash
-corepack enable
-corepack prepare pnpm@12.4.2 --activate
-pnpm install --frozen-lockfile
-pnpm check
-pnpm build
+pnpm install
+pnpm build          # astro build (Cloudflare adapter → dist/client + dist/server)
+wrangler deploy
 ```
 
-## Cloudflare Workers
-`wrangler.jsonc` targets `./dist/_worker.js/index.js` and serves static assets from `./dist`.
-
-## GA4
-Configured with `G-HXM22WWPKP`.
-
-## Note about photos
-The source page uses real Wikimedia Commons photographs. This runtime could not download image binaries due container egress/DNS restrictions, so the delivered source currently references Wikimedia thumbnail URLs. See `IMAGE-CREDITS.md` for exact files and licenses.
+Set `SITE_URL` in the deploy environment if you need a non-default domain.

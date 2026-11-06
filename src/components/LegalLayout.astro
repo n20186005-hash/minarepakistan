@@ -1,0 +1,97 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  updated?: string;
+}
+const { title, description, updated } = Astro.props;
+const DOMAIN = 'minarepakistan.com';
+const siteUrl = Astro.site ?? new URL(`https://${DOMAIN}`);
+const canonical = new URL(Astro.url.pathname, siteUrl).toString();
+const ogImage =
+  'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Minar-e-Pakistan%2C_Lahore.jpg/1280px-Minar-e-Pakistan%2C_Lahore.jpg';
+const GA_ID = 'G-HXM22WWPKP';
+---
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:alt" content="Minar-e-Pakistan, Lahore" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#8e3b24" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/favicon-180.png" />
+  <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments)}
+    gtag('js', new Date());
+    gtag('config', 'G-HXM22WWPKP');
+  </script>
+</head>
+<body>
+  <div class="ornament"></div>
+  <header class="site-header">
+    <div class="shell site-header-inner">
+      <a class="brand" href="/" aria-label="Minar-e-Pakistan home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1f1713"/><path d="M10 51V25h8v-8h8v8h12v-8h8v8h8v26H10Zm10 0V35h24v16" fill="#c99a48"/><path d="M26 51V39h12v12" fill="#8e3b24"/></svg>
+        <span>Minar-e-Pakistan</span>
+      </a>
+      <a class="header-link" href="/#guides">All guides &rarr;</a>
+    </div>
+  </header>
+
+  <main class="shell legal-body">
+    <nav class="breadcrumb-nav shell" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <span aria-hidden="true">/</span>
+      <span class="current">{title.split(' — ')[0]}</span>
+    </nav>
+
+    <section class="topic-hero">
+      <div class="shell">
+        <div class="kicker">Legal</div>
+        <h1>{title.split(' — ')[0]}</h1>
+        {updated && <p class="verified-note">Last updated: {updated}</p>}
+      </div>
+    </section>
+
+    <div class="topic-body">
+      <slot />
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div>
+        <img src="/logo.svg" alt="Minar-e-Pakistan logo" width="220" height="66" />
+        <p>This is an unofficial information website and is not affiliated with or endorsed by any government authority. Confirm dynamic details on-site or via official channels before you travel.</p>
+      </div>
+      <div>
+        <b>Legal</b>
+        <p><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a> · <a href="/cookies/">Cookie Settings</a></p>
+        <b style="margin-top:1rem;display:block">Explore</b>
+        <p><a href="/">Home</a> · <a href="/#guides">All guides</a> · <a href="/#about">About</a> · <a href="/#history">History</a> · <a href="/#faq">FAQ</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script is:inline>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+    }
+  </script>
+</body>
+</html>

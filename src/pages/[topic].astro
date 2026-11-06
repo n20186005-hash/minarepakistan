@@ -1,0 +1,83 @@
+---
+import TopicPage from '../components/TopicPage.astro';
+import { getTopic, topicSlugs, TOPIC_GROUPS } from '../data/topics';
+import { DOMAIN, OG_IMAGE } from '../data/site';
+
+export const prerender = true;
+export const dynamicParams = false;
+
+export function getStaticPaths() {
+  return topicSlugs().map((slug) => ({
+    params: { topic: slug },
+    props: { topic: getTopic(slug)! }
+  }));
+}
+
+const { topic } = Astro.props;
+const siteUrl = Astro.site ?? new URL(`https://${DOMAIN}`);
+const canonical = new URL(`/${topic.slug}/`, siteUrl).toString();
+const ogImage = OG_IMAGE;
+const groupLabel = TOPIC_GROUPS[topic.group as keyof typeof TOPIC_GROUPS];
+
+const webPageLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${canonical}#webpage`,
+  url: canonical,
+  name: topic.h1,
+  description: topic.metaDescription,
+  inLanguage: 'en',
+  isPartOf: { '@type': 'WebSite', '@id': `https://${DOMAIN}/#website` },
+  about: { '@type': 'TouristAttraction', '@id': `https://${DOMAIN}/#attraction` },
+  breadcrumb: { '@id': `${canonical}#breadcrumb` },
+  lastReviewed: topic.updated
+};
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${canonical}#breadcrumb`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `https://${DOMAIN}/` },
+    { '@type': 'ListItem', position: 2, name: groupLabel, item: `https://${DOMAIN}/#guides` },
+    { '@type': 'ListItem', position: 3, name: topic.h1, item: canonical }
+  ]
+};
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: topic.faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a }
+  }))
+};
+---
+
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{topic.metaTitle}</title>
+  <meta name="description" content={topic.metaDescription} />
+  <link rel="canonical" href={canonical} />
+  <meta property="og:title" content={topic.h1} />
+  <meta property="og:description" content={topic.metaDescription} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:alt" content={`${topic.h1}, Lahore`} />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#8e3b24" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script type="application/ld+json" set:html={JSON.stringify(webPageLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+</head>
+<body>
+  <TopicPage topic={topic} groupLabel={groupLabel} />
+</body>
+</html>

@@ -1,35 +1,16 @@
 ---
 import '../styles/global.css';
+import { d, DOMAIN, OG_IMAGE } from '../data/site';
+import { topicsByGroup, TOPIC_GROUPS, type TopicGroup } from '../data/topics';
 
-const DOMAIN = 'minarepakistan.com';
+const guideGroups = Object.keys(TOPIC_GROUPS) as TopicGroup[];
+
 const LAT = 31.5925;
 const LNG = 74.3146;
 
 const siteUrl = Astro.site ?? new URL(`https://${DOMAIN}`);
 const canonical = new URL(Astro.url.pathname, siteUrl).toString();
-const ogImage = new URL('/images/hero.jpg', siteUrl).toString();
-
-const d = {
-  fullName: 'Minar-e-Pakistan',
-  shortName: 'Minar-e-Pakistan',
-  urduName: 'مینارِ پاکستان',
-  city: 'Lahore',
-  region: 'Punjab',
-  country: 'Pakistan',
-  countryCode: 'PK',
-  postal: '54000',
-  lat: 31.5925,
-  lng: 74.3146,
-  mapsUrl: 'https://maps.app.goo.gl/wK9FiYQgEEFcchqu9',
-  mapsEmbed: 'https://www.google.com/maps?q=Minar-e-Pakistan,Lahore,Pakistan&output=embed',
-  nearby1: 'Lahore Fort',
-  nearby2: 'Badshahi Mosque',
-  govtUrl: 'https://www.tourism.gov.pk/',
-  punjabUrl: 'https://www.punjab.gov.pk/',
-  rating: 4.6,
-  reviews: 20553,
-  syncMonth: '2026 年 9 月'
-};
+const ogImage = OG_IMAGE;
 
 /* ----------------------------- Weather (server-side fetch + cache) ----------------------------- */
 type WxDay = { dow: string; tmax: number; tmin: number; pop: number; icon: string; label: string };
@@ -331,7 +312,7 @@ const faqLd = {
       <div class="nav-links">
         <a href="#about">About</a><a href="#weather">Weather</a><a href="#getting-there">Getting there</a>
         <a href="#facilities">Facilities</a><a href="#seasons">Seasons</a><a href="#itineraries">Itineraries</a>
-        <a href="#history">History</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a><a href="#sources">Sources</a>
+        <a href="#guides">Guides</a><a href="#history">History</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a><a href="#sources">Sources</a>
       </div>
     </div>
   </nav>
@@ -446,7 +427,7 @@ const faqLd = {
       <iframe title={`${d.fullName} Google Map`} loading="lazy" referrerpolicy="no-referrer-when-downgrade" src={d.mapsEmbed}></iframe>
     </div>
     <p style="margin-top:1rem"><a class="button alt" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>
-    <p class="credits">Map data © Google. {d.fullName} is situated inside Iqbal Park, Walled City of {d.city}, {d.postal}, {d.country}.</p>
+    <p class="credits">Map data © Google. {d.fullName} is situated inside Iqbal Park, Walled City of {d.city}, {d.postal}, {d.country}. Plus Code: {d.plusCode} ({d.city}, {d.country}).</p>
   </div>
 </section>
 
@@ -542,6 +523,25 @@ const faqLd = {
   </div>
 </section>
 
+<section class="section shell" id="guides">
+  <div class="kicker">In-depth guides</div>
+  <h2 class="section-title">Topic Guides &amp; Long-tail Answers</h2>
+  <p>Focused guides to the practical questions travellers ask most: timings, tickets, transport, history, nearby landmarks, food, stay and photo routes. Each opens a dedicated page with details and its own FAQ.</p>
+  {guideGroups.map((key) => (
+    <div class="guide-group">
+      <h3 class="block-title">{TOPIC_GROUPS[key]}</h3>
+      <div class="related-grid">
+        {topicsByGroup(key).map((t) => (
+          <a class="card" href={`/${t.slug}/`}>
+            <span class="related-kicker">{t.kicker}</span>
+            <strong>{t.h1}</strong>
+          </a>
+        ))}
+      </div>
+    </div>
+  ))}
+</section>
+
 <section class="section dark" id="history">
   <div class="shell">
     <div class="kicker" style="color:#e5b55f">Background &amp; stories</div>
@@ -579,9 +579,9 @@ const faqLd = {
       <span class="review-score">{d.rating.toFixed(1)}</span>
       <span class="review-meta">out of 5<br/><strong>{d.reviews.toLocaleString()} reviews</strong></span>
     </div>
-    <p class="review-note">评分与评价数同步自谷歌地图（Google Maps）用户评价 · {d.syncMonth} · 点击查看谷歌地图全部评价↗</p>
-    <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
-    <p style="margin-top:1rem"><a class="button" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">在谷歌地图查看全部评价</a></p>
+    <p class="review-note">Ratings and review counts are mirrored from Google Maps user reviews · {d.syncMonth} · See all Google Maps reviews ↗</p>
+    <p class="src-note">Mirrored from Google Maps user reviews, synced {d.syncMonth}; copyright belongs to the original authors and Google Maps.</p>
+    <p style="margin-top:1rem"><a class="button" href={d.mapsUrl} target="_blank" rel="noopener noreferrer">See all reviews on Google Maps</a></p>
   </div>
 </section>
 
@@ -603,8 +603,8 @@ const faqLd = {
 <section class="section" id="sources" style="background:#d8c29e">
   <div class="shell">
     <h2 class="section-title">Sources &amp; Image Credits</h2>
-    <p><strong>评价 · 同步时间 {d.syncMonth}</strong></p>
-    <p class="src-note">同步自 Google 地图用户评价，同步时间 {d.syncMonth}；版权归原作者与 Google 地图所有</p>
+    <p><strong>Ratings · synced {d.syncMonth}</strong></p>
+    <p class="src-note">Mirrored from Google Maps user reviews, synced {d.syncMonth}; copyright belongs to the original authors and Google Maps.</p>
     <p>Rating ({d.rating.toFixed(1)}/5) and review count ({d.reviews.toLocaleString()}) are mirrored from Google Maps user reviews and may change over time; they are not an official government rating. See all reviews on <a href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Google Maps</a>.</p>
     <p class="credits">Historical and practical information is compiled from public tourism references including the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} Tourism Portal</a> and the <a href={d.punjabUrl} target="_blank" rel="noopener noreferrer">Government of {d.region}</a>, along with well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses).</p>
   </div>
@@ -617,6 +617,7 @@ const faqLd = {
       <p>This is an unofficial information website and is not affiliated with or endorsed by any government authority.</p>
     </div>
     <div><b>Quick links</b><p><a href="#about">About</a> · <a href="#weather">Weather</a> · <a href="#getting-there">Getting there</a> · <a href="#facilities">Facilities</a> · <a href="#seasons">Seasons</a> · <a href="#itineraries">Itineraries</a> · <a href="#history">History</a> · <a href="#reviews">Reviews</a> · <a href="#faq">FAQ</a> · <a href="#sources">Sources</a></p></div>
+    <div><b>Legal</b><p><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a> · <a href="/cookies/">Cookie Settings</a></p></div>
   </div>
 </footer>
 

@@ -1,0 +1,107 @@
+---
+import { getTopic } from '../data/topics';
+import { DOMAIN } from '../data/site';
+
+interface Props {
+  topic: {
+    slug: string;
+    group: string;
+    kicker: string;
+    h1: string;
+    lead: string;
+    updated: string;
+    sections: { heading: string; body?: string[]; bullets?: string[] }[];
+    faqs: { q: string; a: string }[];
+    related: string[];
+  };
+  groupLabel: string;
+}
+
+const { topic, groupLabel } = Astro.props;
+
+// Resolve related links to real topics (skip any unknown slug).
+const related = topic.related
+  .map((slug) => getTopic(slug))
+  .filter((t): t is NonNullable<typeof t> => Boolean(t));
+---
+
+<header class="site-header">
+  <div class="shell site-header-inner">
+    <a class="brand" href="/" aria-label={`${DOMAIN} home`}>
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1f1713"/><path d="M10 51V25h8v-8h8v8h12v-8h8v8h8v26H10Zm10 0V35h24v16" fill="#c99a48"/><path d="M26 51V39h12v12" fill="#8e3b24"/></svg>
+      <span>Minar-e-Pakistan</span>
+    </a>
+    <a class="header-link" href="/#guides">All guides &rarr;</a>
+  </div>
+</header>
+
+<nav class="breadcrumb-nav shell" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span aria-hidden="true">/</span>
+  <a href="/#guides">{groupLabel}</a>
+  <span aria-hidden="true">/</span>
+  <span class="current">{topic.h1}</span>
+</nav>
+
+<section class="topic-hero">
+  <div class="shell">
+    <div class="kicker">{topic.kicker}</div>
+    <h1>{topic.h1}</h1>
+    <p>{topic.lead}</p>
+    <p class="verified-note">Last verified: {topic.updated} · Independent visitor guide, not affiliated with any authority.</p>
+  </div>
+</section>
+
+<main class="shell topic-body">
+  {topic.sections.map((s) => (
+    <section class="topic-section">
+      <h2>{s.heading}</h2>
+      {s.body && s.body.map((p) => <p>{p}</p>)}
+      {s.bullets && (
+        <ul>
+          {s.bullets.map((b) => <li>{b}</li>)}
+        </ul>
+      )}
+    </section>
+  ))}
+
+  <section class="topic-section" id="faq">
+    <h2>Frequently asked questions</h2>
+    {topic.faqs.map((f) => (
+      <details><summary>{f.q}</summary><p>{f.a}</p></details>
+    ))}
+  </section>
+
+  {related.length > 0 && (
+    <section class="topic-section related">
+      <h2>Related guides</h2>
+      <div class="related-grid">
+        {related.map((r) => (
+          <a class="card" href={`/${r.slug}/`}>
+            <span class="related-kicker">{r.kicker}</span>
+            <strong>{r.h1}</strong>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div>
+      <img src="/logo.svg" alt="Minar-e-Pakistan logo" width="220" height="66" />
+      <p>This is an unofficial information website and is not affiliated with or endorsed by any government authority. Confirm dynamic details (hours, fees, transport) on-site or via official channels before you travel.</p>
+    </div>
+    <div>
+      <b>Explore</b>
+      <p>
+        <a href="/">Home</a> · <a href="/#guides">All guides</a> · <a href="/#about">About</a> ·
+        <a href="/#history">History</a> · <a href="/#getting-there">Getting there</a> · <a href="/#faq">FAQ</a>
+      </p>
+      <b style="margin-top:1rem;display:block">Legal</b>
+      <p><a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a> · <a href="/cookies/">Cookie Settings</a></p>
+      <p class="credits">Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses). Map data © Google.</p>
+    </div>
+  </div>
+</footer>
