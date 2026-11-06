@@ -415,7 +415,7 @@ const faqLd = {
       <p class="breadcrumb">{d.fullName} &rarr; {d.city} &rarr; {d.region} &rarr; {d.country}</p>
       <div><span class="chip">Mughal heritage</span><span class="chip">National monument</span><span class="chip">Photography spot</span><span class="chip">{d.city} old city</span></div>
     </div>
-    <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt={`${d.nearby2} near ${d.shortName}, ${d.city}`} loading="lazy"/><figcaption class="credits">Nearby landmark: {d.nearby2}, {d.city} — image via Wikimedia Commons</figcaption></figure>
+    <figure class="photo-frame"><img src="/images/badshahi.jpg" alt={`${d.nearby2} near ${d.shortName}, ${d.city}`} loading="lazy"/><figcaption class="credits">Nearby landmark: {d.nearby2}, {d.city}</figcaption></figure>
   </div>
 </section>
 
@@ -437,10 +437,10 @@ const faqLd = {
   <p>When visiting <strong>{d.fullName}</strong>, travellers can easily explore surrounding historical landmarks and points of interest, including <strong>{d.nearby1}</strong> and <strong>{d.nearby2}</strong>.</p>
   <div class="gallery">
     <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/View_of_Delhi_Gate%2C_Lahore.jpg/1280px-View_of_Delhi_Gate%2C_Lahore.jpg" alt={`Delhi Gate, Walled City of ${d.city}`} loading="lazy"/>
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg/1280px-Badshahi_Mosque%2C_Lahore._King%27s_Mosque.jpg" alt={d.nearby2} loading="lazy"/>
-    <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Wazir_khan_mosque_entry.jpg/1280px-Wazir_khan_mosque_entry.jpg" alt="Wazir Khan Mosque, Walled City of Lahore" loading="lazy"/>
+    <img src="/images/badshahi.jpg" alt={d.nearby2} loading="lazy"/>
+    <img src="/images/wazir.jpg" alt="Wazir Khan Mosque, Walled City of Lahore" loading="lazy"/>
   </div>
-  <p class="credits">Images: Wikimedia Commons (CC). For official updates and regional tourism information, visit the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} / {d.region} Official Tourism Portal</a>.</p>
+  <p class="credits">Images: local photography and Wikimedia Commons (CC). For official updates and regional tourism information, visit the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} / {d.region} Official Tourism Portal</a>.</p>
 </section>
 
 <section class="section" id="getting-there" style="background:#f1e7d4">
@@ -553,7 +553,7 @@ const faqLd = {
         <p>The tower rises about 70 metres through a series of petal-shaped platforms &ldquo;unfolding&rdquo; from the ground — widely read as a symbol of a nation coming into being. Inscriptions at the base include the text of the Pakistan Resolution and verses, and the different stone and marble tiers are said to reflect the stages of the struggle.</p>
         <p>Today the monument is a civic gathering point, a photography landmark and a reminder of the political moment that reshaped the region.</p>
       </div>
-      <figure class="photo-frame"><img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Minar-e-Pakistan%2C_Lahore.jpg/1280px-Minar-e-Pakistan%2C_Lahore.jpg" alt={`${d.fullName}, ${d.city}`} loading="lazy"/><figcaption class="credits">{d.fullName}, {d.city} — image via Wikimedia Commons</figcaption></figure>
+      <figure class="photo-frame"><img src="/images/minar.jpg" alt={`${d.fullName}, ${d.city}`} loading="lazy"/><figcaption class="credits">{d.fullName}, {d.city}</figcaption></figure>
     </div>
   </div>
 </section>
@@ -606,7 +606,7 @@ const faqLd = {
     <p><strong>Ratings · synced {d.syncMonth}</strong></p>
     <p class="src-note">Mirrored from Google Maps user reviews, synced {d.syncMonth}; copyright belongs to the original authors and Google Maps.</p>
     <p>Rating ({d.rating.toFixed(1)}/5) and review count ({d.reviews.toLocaleString()}) are mirrored from Google Maps user reviews and may change over time; they are not an official government rating. See all reviews on <a href={d.mapsUrl} target="_blank" rel="noopener noreferrer">Google Maps</a>.</p>
-    <p class="credits">Historical and practical information is compiled from public tourism references including the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} Tourism Portal</a> and the <a href={d.punjabUrl} target="_blank" rel="noopener noreferrer">Government of {d.region}</a>, along with well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Nearby-landmark and monument photographs are via Wikimedia Commons (CC licenses).</p>
+    <p class="credits">Historical and practical information is compiled from public tourism references including the <a href={d.govtUrl} target="_blank" rel="noopener noreferrer">{d.country} Tourism Portal</a> and the <a href={d.punjabUrl} target="_blank" rel="noopener noreferrer">Government of {d.region}</a>, along with well-known map and geographic sources. Climate notes are based on {d.city}&rsquo;s long-term climatological normals. Some nearby-landmark photographs are via Wikimedia Commons (CC licenses); the principal monument photograph is locally hosted.</p>
   </div>
 </section>
 

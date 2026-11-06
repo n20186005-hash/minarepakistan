@@ -30,7 +30,5 @@ export const d = {
 // Short, factual name of the surrounding park (avoid conflating monument / park / museum).
 export const PARK_NAME = 'Iqbal Park';
 
-// Open Graph image. Real Wikimedia Commons photograph — image binaries cannot be bundled
-// in this repo, so we reference a stable Wikimedia thumbnail URL for social previews.
-export const OG_IMAGE =
-  'https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Minar-e-Pakistan%2C_Lahore.jpg/1280px-Minar-e-Pakistan%2C_Lahore.jpg';
+// Open Graph image. Real on-site photograph served from public/images.
+export const OG_IMAGE = `https://${DOMAIN}/images/minar.jpg`;
