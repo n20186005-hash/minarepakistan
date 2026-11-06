@@ -6,6 +6,13 @@ Checked 29 October 2026. These are historical photographs, not evidence of curre
 - public/images/badshahi.jpg — Ujphotos / UJ Photos, 19 May 2013; File:Badshahi Mosque, Lahore. King's Mosque.jpg. Source: https://commons.wikimedia.org/wiki/File:Badshahi_Mosque,_Lahore._King%27s_Mosque.jpg ; CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/ ; Commons-delivered 1280px resize, CSS display may crop, derivatives under same licence. This is a separate nearby landmark.
 - public/images/wazir.jpg — Shahbaz Aslam, 6 February 2016; File:Wazir khan mosque entry.jpg. Source: https://commons.wikimedia.org/wiki/File:Wazir_khan_mosque_entry.jpg ; CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/ ; Commons-delivered 1280px resize, CSS display may crop, derivatives under same licence. This is a separate old-city destination.
 
+Additional photographs for the nearby-landmark guides (added 6 November 2026):
+
+- public/images/lahore-fort.jpg — *Alamgiri Gate - Lahore Fort entrance with Pakistani Flag*, Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Alamgiri_Gate_-_Lahore_Fort_entrance_with_Pakistani_Flag.jpg .
+- public/images/iqbal-tomb.jpg — *Muhammad Allama Iqbal’s Tomb*, Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Muhammad_Allama_Iqbal%E2%80%99s_Tomb.JPG .
+- public/images/hazuri-bagh.jpg — *Hazuri Bagh as viewed from Badshahi Mosque entrance*, Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Hazuri_Bagh_as_viewed_from_Badshahi_Mosque_entrance.jpg .
+- public/images/national-history-museum.jpg — National History Museum exterior, Lahore Division government portal: https://lahoredivision.punjab.gov.pk/projects-lahore .
+
 Previously linked Delhi Gate photo (Umaimaumi, CC BY-SA 4.0) remains a credited source link, not a publicly delivered asset. The original uncredited/unverifiable Minar thumbnail and the prominent-person alternative reviewed during sourcing are not used.
 
 Architecture context: WIPO Lex Pakistan Copyright Ordinance 1962, section 57(1)(r)-(s), https://www.wipo.int/wipolex/en/legislation/details/3482 . This is a limited copyright context, not proof of an original photographer's entry permit, individual consent or current venue photography rules. Those permissions were not independently established; the visible assets focus on architecture with only incidental distant figures.

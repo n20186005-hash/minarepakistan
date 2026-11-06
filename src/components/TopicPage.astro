@@ -1,6 +1,7 @@
 ---
 import { getTopic } from '../data/topics';
 import { DOMAIN } from '../data/site';
+import { LANDMARKS } from '../data/landmarks';
 
 interface Props {
   topic: {
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const { topic, groupLabel } = Astro.props;
+const landmark = LANDMARKS[topic.slug];
 
 // Resolve related links to real topics (skip any unknown slug).
 const related = topic.related
@@ -45,14 +47,31 @@ const related = topic.related
   <span class="current">{topic.h1}</span>
 </nav>
 
-<section class="topic-hero">
+<section class:list={['topic-hero', { 'landmark-hero': Boolean(landmark) }]} style={landmark ? `--landmark-image:url("${landmark.image}")` : undefined}>
   <div class="shell">
+    {landmark && <span class="landmark-eyebrow">Lahore heritage · Visitor guide</span>}
     <h1>{topic.h1}</h1>
-    <p>{topic.lead}</p>
+    <p>{landmark?.tagline ?? topic.lead}</p>
+    {landmark && <div class="landmark-hero-meta"><span>◷ {landmark.hours}</span><span>⌖ {landmark.location}</span><a href={landmark.maps} target="_blank" rel="noopener noreferrer">View location ↗</a></div>}
   </div>
 </section>
 
 <main class="shell topic-body">
+  {landmark && <>
+    <nav class="landmark-jump" aria-label="On this page"><a href="#explore">Explore</a><a href="#essentials">Essentials</a><a href="#discover">Discover</a><a href="#route">Route</a><a href="#photos">Photography</a><a href="#directions">Directions</a><a href="#faq">FAQ</a></nav>
+    <section class="topic-section landmark-intro" id="explore"><div><span class="kicker">Explore Lahore</span><h2>Discover {topic.h1}</h2><p>{topic.lead}</p><p>{landmark.visitorPerspective}</p></div><img src={landmark.image} alt={landmark.imageAlt} loading="lazy" onerror="this.style.display='none'" /></section>
+    <section class="topic-section"><h2>Visit tips</h2><div class="landmark-card-grid">{landmark.visitTips.map((tip, i) => <article class="landmark-tip"><b>{String(i+1).padStart(2,'0')}</b><p>{tip}</p></article>)}</div></section>
+    <section class="topic-section"><h2>Highlights</h2><ul class="landmark-highlight-list">{landmark.features.map((f) => <li>{f}</li>)}</ul></section>
+    <section class="topic-section" id="essentials"><h2>About &amp; basic information</h2><p>{topic.lead}</p><dl class="landmark-facts"><div><dt>Attraction</dt><dd>{topic.h1}</dd></div><div><dt>Type</dt><dd>{landmark.type}</dd></div><div><dt>Location</dt><dd>{landmark.location}</dd></div><div><dt>Suggested time</dt><dd>{landmark.duration}</dd></div></dl></section>
+    <section class="topic-section landmark-two"><div><h2>Opening hours</h2><p>{landmark.hours}</p><p>Confirm current access at the entrance or on the linked map before travelling, especially around public events.</p></div><div><h2>Tickets &amp; prices</h2><p>{landmark.admission}</p><p>Prices and eligibility can change; check the on-site ticket counter for the latest arrangement.</p></div></section>
+    <section class="topic-section" id="discover"><h2>Discover its history, architecture &amp; culture</h2><div class="landmark-discover">{landmark.discovery.map((d, i) => <article><span>{String(i+1).padStart(2,'0')}</span><div><h3>{d.title}</h3><p>{d.text}</p></div></article>)}</div></section>
+    <section class="topic-section" id="route"><h2>Recommended walking route</h2><ol class="landmark-steps">{landmark.route.map((step) => <li>{step}</li>)}</ol></section>
+    <section class="topic-section landmark-two"><div><h2>Before you go</h2><ul>{landmark.etiquette.map((x) => <li>{x}</li>)}</ul></div><div id="photos"><h2>Photography viewpoints</h2><ul>{landmark.photos.map((x) => <li>{x}</li>)}</ul></div></section>
+    <section class="topic-section"><h2>Where to stay</h2><p>{landmark.accommodation}</p></section>
+    <section class="topic-section"><h2>Visitor perspective</h2><blockquote class="landmark-perspective">{landmark.visitorPerspective}</blockquote><p class="landmark-caption">Editorial visit-planning perspective; not a fabricated visitor review or live rating.</p></section>
+    <section class="topic-section" id="directions"><h2>Getting here &amp; location</h2><p><strong>Area:</strong> {landmark.location}</p><ul>{landmark.transport.map((x) => <li>{x}</li>)}</ul><a class="landmark-map-link" href={landmark.maps} target="_blank" rel="noopener noreferrer">Open {topic.h1} in Google Maps ↗</a></section>
+    <section class="topic-section landmark-original"><h2>More details for planning your visit</h2><p>Explore the historical background and practical details from this guide below.</p></section>
+  </>}
   {topic.sections.map((s) => (
     <section class="topic-section">
       <h2>{s.heading}</h2>
@@ -91,7 +110,7 @@ const related = topic.related
   <div class="shell">
     <div>
       <img src="/logo.svg" alt="Minar-e-Pakistan logo" width="220" height="66" />
-      <p>This is an unofficial information website and is not affiliated with or endorsed by any government authority. Confirm dynamic details (hours, fees, transport) on-site or via official channels before you travel.</p>
+      <p>Explore Lahore’s heritage, plan a walk between landmarks and check current visiting arrangements before setting out.</p>
     </div>
     <div>
       <b>Explore</b>
