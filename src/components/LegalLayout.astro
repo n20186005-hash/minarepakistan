@@ -1,4 +1,6 @@
 ---
+import '../styles/global.css';
+
 interface Props {
   title: string;
   description: string;
@@ -53,24 +55,22 @@ const GA_ID = 'G-HXM22WWPKP';
     </div>
   </header>
 
-  <main class="shell legal-body">
-    <nav class="breadcrumb-nav shell" aria-label="Breadcrumb">
-      <a href="/">Home</a>
-      <span aria-hidden="true">/</span>
-      <span class="current">{title.split(' — ')[0]}</span>
-    </nav>
+  <nav class="breadcrumb-nav shell" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <span class="current">{title.split(' — ')[0]}</span>
+  </nav>
 
-    <section class="topic-hero">
-      <div class="shell">
-        <div class="kicker">Legal</div>
-        <h1>{title.split(' — ')[0]}</h1>
-        {updated && <p class="verified-note">Last updated: {updated}</p>}
-      </div>
-    </section>
-
-    <div class="topic-body">
-      <slot />
+  <section class="topic-hero">
+    <div class="shell">
+      <div class="kicker">Legal</div>
+      <h1>{title.split(' — ')[0]}</h1>
+      {updated && <p class="verified-note">Last updated: {updated}</p>}
     </div>
+  </section>
+
+  <main class="shell topic-body">
+    <slot />
   </main>
 
   <footer class="site-footer">

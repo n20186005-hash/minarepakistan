@@ -524,7 +524,6 @@ const faqLd = {
 </section>
 
 <section class="section shell" id="guides">
-  <div class="kicker">In-depth guides</div>
   <h2 class="section-title">Topic Guides &amp; Long-tail Answers</h2>
   <p>Focused guides to the practical questions travellers ask most: timings, tickets, transport, history, nearby landmarks, food, stay and photo routes. Each opens a dedicated page with details and its own FAQ.</p>
   {guideGroups.map((key) => (
@@ -533,7 +532,6 @@ const faqLd = {
       <div class="related-grid">
         {topicsByGroup(key).map((t) => (
           <a class="card" href={`/${t.slug}/`}>
-            <span class="related-kicker">{t.kicker}</span>
             <strong>{t.h1}</strong>
           </a>
         ))}

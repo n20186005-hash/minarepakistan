@@ -1485,10 +1485,28 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'The cluster',
+        heading: 'At a glance',
+        bullets: [
+          'The sights: Minar-e-Pakistan, Iqbal Park, Badshahi Mosque, Lahore Fort, Hazuri Bagh, Walled City of Lahore.',
+          'Where: the Walled City of Lahore, clustered within a short ride or walk of each other.',
+          'Best order: monument and park in the morning, mosque and fort after, old city to close the day.',
+          'Entry: the monument and park are generally free; the fort or museum may have their own arrangement.'
+        ]
+      },
+      {
+        heading: 'Explore the cluster',
         body: [
           'Within a short distance you can link Minar-e-Pakistan with Iqbal Park, Badshahi Mosque, Lahore Fort, Hazuri Bagh and the Walled City.',
           'This makes Lahore unusually rewarding for a single day of sightseeing.'
+        ]
+      },
+      {
+        heading: 'Highlights',
+        bullets: [
+          'Badshahi Mosque — a 17th-century Mughal mosque and one of the largest in the world.',
+          'Lahore Fort (Shahi Qila) — a UNESCO-listed Mughal citadel beside the mosque.',
+          'Hazuri Bagh — the walled garden that frames the view between fort and mosque.',
+          'Walled City — Delhi Gate, Wazir Khan Mosque and Shahi Hammam in the living old town.'
         ]
       },
       {
@@ -1500,10 +1518,31 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Suggested pairings',
+        heading: 'A short history',
+        body: [
+          'This part of Lahore was the seat of Mughal power, and the fort, mosque and garden were built as a connected imperial ensemble.',
+          'The Walled City grew around them, so a visit here is also a walk through several centuries of the city.'
+        ]
+      },
+      {
+        heading: 'Visitor tips',
         body: [
           'Monument + park in the morning, then the mosque and fort in the afternoon.',
           'Add Wazir Khan Mosque and Delhi Gate for an old-city walk.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'The monument and park follow daylight access; the mosque, fort and museum keep their own posted hours.',
+          'Because hours change by season and management, confirm each sight on-site or via official channels before you travel.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'Each sight has its own access rules; the monument and park are generally free, while the fort or museum may differ.',
+          'Confirm per-site details before you go.'
         ]
       },
       {
@@ -1514,17 +1553,49 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'A half-day combo',
-        body: [
-          'Minar-e-Pakistan and Iqbal Park (2h) → Badshahi Mosque (1h) → Lahore Fort (1.5h) fits a relaxed half day.',
-          'See the half-day itinerary for the step-by-step.'
+        heading: 'Suggested route',
+        bullets: [
+          'Start at Minar-e-Pakistan and Iqbal Park (about 2h).',
+          'Walk or take a short ride to Badshahi Mosque (about 1h).',
+          'Cross Hazuri Bagh to Lahore Fort (about 1.5h).',
+          'Continue into the Walled City via Delhi Gate for Wazir Khan Mosque and Shahi Hammam.'
         ]
       },
       {
-        heading: 'Tickets and hours differ',
+        heading: 'Visitor notes',
+        bullets: [
+          'Dress modestly for the mosque and tomb; remove shoes in prayer areas.',
+          'Carry water and sun protection in summer; keep valuables secure in old-city markets.',
+          'Ask before photographing people, especially during prayers.'
+        ]
+      },
+      {
+        heading: 'Photo spots',
+        bullets: [
+          'The monument reflecting in the Iqbal Park lake at sunrise or sunset.',
+          'The aligned view of the Badshahi Mosque gateway across Hazuri Bagh.',
+          'Fort ramparts with the mosque behind, and old-city lanes near Delhi Gate.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
         body: [
-          'Each sight has its own access rules; the monument and park are generally free, while the fort or museum may differ.',
-          'Confirm per-site details before you go.'
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and the central districts.',
+          'Staying near the old city keeps the monuments within easy reach for early-morning or after-sunset visits.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'These landmarks are among Lahore\'s most visited and most photographed sights, and they feature heavily in travellers\' own write-ups of the city.',
+          'For current ratings and recent visitor notes, check Google Maps before you go, as on-site conditions and services can change.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'The cluster sits inside Iqbal Park and the Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Use a map app to reach the nearest park gate or Delhi Gate; see the getting-there guide for options from the airport, railway station and across the city.'
         ]
       }
     ],
@@ -1549,10 +1620,35 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'What: the large public park that contains Minar-e-Pakistan.',
+          'Where: Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Entry: generally free; some facilities inside may charge separately.',
+          'Best time: mornings and after sunset in every season.'
+        ]
+      },
+      {
+        heading: 'Explore the park',
         body: [
           'Iqbal Park is the large public park that contains Minar-e-Pakistan.',
           'It offers gardens, open lawns, a lake and walking paths around the monument.'
+        ]
+      },
+      {
+        heading: 'Highlights',
+        bullets: [
+          'Minar-e-Pakistan at the centre of the grounds.',
+          'A lake that mirrors the tower, popular with birds and photographers.',
+          'Landscaped gardens and shaded lawns for resting and picnics.',
+          'Paved paths suitable for walking and strollers.'
+        ]
+      },
+      {
+        heading: 'About the park',
+        body: [
+          'The grounds were formerly known as Minto Park and were renamed Iqbal Park after the poet-philosopher Allama Iqbal.',
+          'The monument at its heart was built between 1960 and 1968 to mark the 1940 Lahore Resolution.'
         ]
       },
       {
@@ -1578,6 +1674,49 @@ const TOPICS: Topic[] = [
         ]
       },
       {
+        heading: 'Layout & design',
+        body: [
+          'The park is laid out around the monument with broad avenues, formal gardens and an open lakefront.',
+          'It is designed for easy walking, with the tower as the focal point from most approaches.'
+        ]
+      },
+      {
+        heading: 'Visitor tips',
+        body: [
+          'Go early or after sunset in summer; bring water and sun protection.',
+          'Keep to main paths with strollers and supervise children near water.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'As a public park it is generally open during daylight hours, with the monument illuminated after dark.',
+          'Exact gate hours can vary by season and management, so confirm locally if your timing is fixed.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'The public park is generally free to enter; some facilities or activities inside may charge separately.',
+          'There is no separate ticket for viewing the monument from the park.'
+        ]
+      },
+      {
+        heading: 'Getting there',
+        body: [
+          'Ride-hailing or metered taxis can drop you near a park gate; the final approach to the monument is on foot through the grounds.',
+          'See the getting-there guide for options from the airport and railway station.'
+        ]
+      },
+      {
+        heading: 'Suggested route',
+        bullets: [
+          'Enter at the nearest park gate and walk the main avenue to Minar-e-Pakistan.',
+          'Circle the lake for the best tower reflections.',
+          'Use the lawns and gardens for a relaxed break before leaving.'
+        ]
+      },
+      {
         heading: 'Facilities',
         bullets: [
           'Public restrooms near main gates and food areas.',
@@ -1586,10 +1725,40 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Visiting tips',
+        heading: 'Visitor notes',
+        bullets: [
+          'Carry out litter and keep the lawns clean for others.',
+          'Modest dress is appropriate at this civic and cultural site.',
+          'Supervise children near the lake and busy paths.'
+        ]
+      },
+      {
+        heading: 'Photo spots',
+        bullets: [
+          'The tower mirrored in the lake at sunrise or sunset.',
+          'Wide lawns framing the monument with open sky.',
+          'The illuminated tower after dark.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
         body: [
-          'Go early or after sunset in summer; bring water and sun protection.',
-          'Keep to main paths with strollers and supervise children near water.'
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city puts the park within easy reach for early or after-sunset visits.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'The park and monument are among Lahore\'s most visited green spaces, and travellers regularly note the lake and the tower as highlights.',
+          'For current ratings and recent visitor notes, check Google Maps, as on-site facilities can change.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'Iqbal Park sits inside the Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Use a map app to reach the nearest gate; see the getting-there guide for transport from across the city.'
         ]
       }
     ],
@@ -1614,18 +1783,34 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'What: a museum of Pakistan\'s history and heritage.',
+          'Where: on the Iqbal Park grounds near Minar-e-Pakistan, Lahore.',
+          'Entry: a separate facility that may have its own arrangement — confirm on-site.',
+          'Best time: as an indoor break during the hottest part of a summer day.'
+        ]
+      },
+      {
+        heading: 'Explore the museum',
         body: [
           'The National History Museum is located within the Iqbal Park complex near Minar-e-Pakistan.',
           'It focuses on Pakistan\'s history and heritage, complementing the monument\'s theme.'
         ]
       },
       {
-        heading: 'What is inside',
+        heading: 'Highlights',
         bullets: [
           'Exhibits relating to the Pakistan Movement and national history.',
           'Documents, artefacts and displays tied to the 1940 resolution and beyond.',
           'Educational content suited to students and families.'
+        ]
+      },
+      {
+        heading: 'About the collection',
+        body: [
+          'The museum tells the story of the movement that led to Pakistan, sitting a short walk from the very ground where the 1940 Lahore Resolution was passed.',
+          'It is an indoor counterpart to the outdoor monument, useful when the weather is hot or busy.'
         ]
       },
       {
@@ -1636,24 +1821,76 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Access from the monument',
+        heading: 'Visitor tips',
+        body: [
+          'Pair it with the monument and park in a single visit, especially in summer when an indoor break helps.',
+          'See the itinerary guides for full-day plans.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'As a separate facility, the museum may keep its own opening hours.',
+          'We do not publish specifics because they change; confirm on-site or via official channels.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'As a separate facility it may have its own entry arrangement.',
+          'Confirm on-site as details change.'
+        ]
+      },
+      {
+        heading: 'Getting there',
         body: [
           'It is on the same park grounds, so reach it on foot from the tower area.',
           'Ask at an information point or check signage for the current route.'
         ]
       },
       {
-        heading: 'Hours and fee (verify)',
-        body: [
-          'As a separate facility, the museum may have its own opening hours and entry arrangement.',
-          'We do not publish specifics because they change; confirm on-site or via official channels.'
+        heading: 'Suggested route',
+        bullets: [
+          'Walk the Iqbal Park grounds from Minar-e-Pakistan toward the museum.',
+          'Combine with the monument and park in one visit.',
+          'Add it to a full-day plan that also takes in the old city.'
         ]
       },
       {
-        heading: 'Combine with',
+        heading: 'Visitor notes',
+        bullets: [
+          'Indoor spaces can be cooler — a good midday option in summer.',
+          'Photography rules vary; follow any posted signs or staff guidance.',
+          'Keep voices low out of respect for other visitors.'
+        ]
+      },
+      {
+        heading: 'Photo spots',
+        bullets: [
+          'Exhibit displays that trace the Pakistan Movement.',
+          'The museum exterior within the green park setting.',
+          'The walk between the monument and the museum.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
         body: [
-          'Pair it with the monument and park in a single visit, especially in summer when an indoor break helps.',
-          'See the itinerary guides for full-day plans.'
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city keeps the park and museum within easy reach.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'The museum is a useful indoor stop for visitors interested in the history behind the monument.',
+          'For current ratings and recent visitor notes, check Google Maps before you go.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'The museum is on the Iqbal Park grounds, Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Use a map app to reach the park; the museum is a short walk from Minar-e-Pakistan inside the grounds.'
         ]
       }
     ],
@@ -1678,10 +1915,29 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'Built: 1673, by Emperor Aurangzeb.',
+          'Style: Mughal, in red sandstone and white marble.',
+          'Where: beside Lahore Fort, Walled City of Lahore.',
+          'Status: an active mosque and one of the largest in the world.',
+          'Entry: generally free; modest dress required.'
+        ]
+      },
+      {
+        heading: 'Explore the mosque',
         body: [
           'The Badshahi Mosque is a 17th-century Mughal mosque built by Emperor Aurangzeb.',
           'It is among the largest mosques in the world and a centre of Lahore\'s skyline.'
+        ]
+      },
+      {
+        heading: 'Highlights',
+        bullets: [
+          'A vast courtyard that can hold tens of thousands of worshippers.',
+          'Four minarets and a grand gatehouse.',
+          'A marble domed prayer hall with fresco and inlay detail.',
+          'Red sandstone set against the green of Hazuri Bagh.'
         ]
       },
       {
@@ -1692,14 +1948,58 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'From the monument',
+        heading: 'Architecture & design',
+        body: [
+          'The mosque is built of red sandstone with marble inlay, arranged around a huge formal courtyard.',
+          'Symmetry, calligraphic decoration and the proportion of the gatehouse are typical of high Mughal design.'
+        ]
+      },
+      {
+        heading: 'Cultural & religious significance',
+        body: [
+          'It is still a working mosque and a focal point of Lahore\'s religious and civic life.',
+          'For visitors it is also one of the city\'s defining landmarks, paired with the fort across Hazuri Bagh.'
+        ]
+      },
+      {
+        heading: 'Visitor tips',
+        body: [
+          'Late afternoon into sunset is popular for light and fewer crowds.',
+          'Non-prayer times are easiest for a calm visit.',
+          'Dress modestly and remove shoes before entering the prayer hall.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'As an active mosque it is generally open through the day, with access to the courtyard for visitors outside prayer times.',
+          'Exact visiting hours can vary, so confirm locally if your timing is fixed.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'Entry is generally free; donation boxes are sometimes present for upkeep.',
+          'There is usually no ticket for visiting the courtyard and exterior.'
+        ]
+      },
+      {
+        heading: 'Getting there',
         body: [
           'It is a short ride or walk beyond Iqbal Park, near Lahore Fort and Hazuri Bagh.',
           'A ride-hailing cab or rickshaw is simplest; some visitors walk the old-city segment.'
         ]
       },
       {
-        heading: 'Visiting etiquette',
+        heading: 'Suggested route',
+        bullets: [
+          'From Minar-e-Pakistan, reach the mosque via Iqbal Park and Hazuri Bagh.',
+          'Cross Hazuri Bagh to Lahore Fort next.',
+          'Return through the old city or by ride-hailing.'
+        ]
+      },
+      {
+        heading: 'Visitor notes',
         bullets: [
           'Dress modestly; cover shoulders and knees.',
           'Remove shoes before entering the prayer hall.',
@@ -1707,17 +2007,32 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Best time',
-        body: [
-          'Late afternoon into sunset is popular for light and fewer crowds.',
-          'Non-prayer times are easiest for a calm visit.'
+        heading: 'Photo spots',
+        bullets: [
+          'The gatehouse and courtyard with the minarets behind.',
+          'The aligned view across Hazuri Bagh toward Lahore Fort.',
+          'The sandstone glowing at sunset.'
         ]
       },
       {
-        heading: 'Combine with',
+        heading: 'Where to stay',
         body: [
-          'Pair it with Lahore Fort and Hazuri Bagh for a compact Mughal core.',
-          'See the one-day itinerary for a full routing.'
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city puts the mosque and fort within easy reach.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'The Badshahi Mosque is consistently named among Lahore\'s must-see landmarks by travellers.',
+          'For current ratings and recent visitor notes, check Google Maps before you go.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'The mosque sits beside Lahore Fort in the Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Use a map app to reach the fort-mosque complex; ride-hailing can drop you near Hazuri Bagh.'
         ]
       }
     ],
@@ -1742,31 +2057,19 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'What: a Mughal citadel beside the Badshahi Mosque.',
+          'Status: part of a UNESCO World Heritage ensemble.',
+          'Where: Walled City of Lahore, near Hazuri Bagh.',
+          'Entry: the fort keeps its own hours and entry arrangement — confirm on-site.'
+        ]
+      },
+      {
+        heading: 'Explore the fort',
         body: [
           'Lahore Fort (Shahi Qila) is a Mughal citadel with centuries of expansion and refinement.',
           'It sits beside Badshahi Mosque, forming the historic core near the monument.'
-        ]
-      },
-      {
-        heading: 'History',
-        body: [
-          'The site has roots going back many centuries, with major Mughal-era construction.',
-          'It is recognised as part of a UNESCO World Heritage ensemble.'
-        ]
-      },
-      {
-        heading: 'From the monument',
-        body: [
-          'Reach it via Badshahi Mosque and Hazuri Bagh, or directly by ride-hailing to the fort entrance.',
-          'The old-city approach is part of the experience.'
-        ]
-      },
-      {
-        heading: 'Hours and tickets (verify)',
-        body: [
-          'As a major monument, it may have its own opening hours and entry arrangement.',
-          'We do not publish specifics because they change; confirm on-site or via official channels.'
         ]
       },
       {
@@ -1778,10 +2081,97 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Combine with',
+        heading: 'History',
         body: [
-          'Pair it with Badshahi Mosque and Hazuri Bagh in one Mughal-core visit.',
-          'See the one-day itinerary for timing.'
+          'The site has roots going back many centuries, with major Mughal-era construction.',
+          'It is recognised as part of a UNESCO World Heritage ensemble.'
+        ]
+      },
+      {
+        heading: 'Architecture & design',
+        body: [
+          'The fort blends red sandstone and white marble across its palaces, pavilions and terraced gardens.',
+          'Its halls and courtyards reflect the craft of the later Mughal court.'
+        ]
+      },
+      {
+        heading: 'Cultural significance',
+        body: [
+          'As a UNESCO World Heritage ensemble, the fort is one of South Asia\'s key surviving Mughal sites.',
+          'Together with the mosque and garden it forms Lahore\'s imperial core.'
+        ]
+      },
+      {
+        heading: 'Visitor tips',
+        body: [
+          'Allow at least 1.5 hours to walk the main palaces and gardens.',
+          'Go in the morning for cooler light and smaller crowds.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'As a major monument, it may have its own opening hours and entry arrangement.',
+          'We do not publish specifics because they change; confirm on-site or via official channels.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'As a major monument it may have its own entry arrangement.',
+          'Confirm on-site as details change.'
+        ]
+      },
+      {
+        heading: 'Getting there',
+        body: [
+          'Reach it via Badshahi Mosque and Hazuri Bagh, or directly by ride-hailing to the fort entrance.',
+          'The old-city approach is part of the experience.'
+        ]
+      },
+      {
+        heading: 'Suggested route',
+        bullets: [
+          'From Minar-e-Pakistan, reach the fort via Iqbal Park and Hazuri Bagh.',
+          'Enter through the fort\'s main gateway and follow the palace circuit.',
+          'Exit toward the Badshahi Mosque across the garden.'
+        ]
+      },
+      {
+        heading: 'Visitor notes',
+        bullets: [
+          'Wear comfortable shoes; surfaces are uneven in places.',
+          'Carry water in summer and keep valuables secure in busy areas.',
+          'Photography is usually allowed, but follow any posted restrictions.'
+        ]
+      },
+      {
+        heading: 'Photo spots',
+        bullets: [
+          'The marble pavilions and courtyards.',
+          'Fort ramparts with the Badshahi Mosque behind.',
+          'The garden axis toward the mosque at golden hour.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
+        body: [
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city keeps the fort and mosque within easy reach.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'Lahore Fort is repeatedly cited by travellers as one of the city\'s essential Mughal sights.',
+          'For current ratings and recent visitor notes, check Google Maps before you go.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'The fort sits beside the Badshahi Mosque in the Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Use a map app to reach the fort-mosque complex; ride-hailing can drop you near Hazuri Bagh.'
         ]
       }
     ],
@@ -1806,10 +2196,27 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'What: a memorial to the poet-philosopher whose vision informed the Pakistan Movement.',
+          'Where: within the wider Lahore historic area.',
+          'Style: a respected civic memorial.',
+          'Entry: generally free; modest, respectful conduct expected.'
+        ]
+      },
+      {
+        heading: 'Explore the tomb',
         body: [
           'The Tomb of Allama Iqbal is a memorial to the poet-philosopher whose vision informed the Pakistan Movement.',
           'It lies within the wider Lahore historic area, a natural add-on to a monument visit.'
+        ]
+      },
+      {
+        heading: 'Highlights',
+        bullets: [
+          'A quiet memorial space in the historic area.',
+          'Link to Iqbal Park, which carries his name.',
+          'A reflective add-on to a monument or old-city visit.'
         ]
       },
       {
@@ -1820,10 +2227,53 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'From the monument',
+        heading: 'History & design',
+        body: [
+          'The memorial was built to honour Iqbal and sits within Lahore\'s layered historic area.',
+          'Its design reflects the civic and cultural respect he commands in Pakistan.'
+        ]
+      },
+      {
+        heading: 'Cultural significance',
+        body: [
+          'Iqbal is honoured as a national poet and thinker whose vision informed the Pakistan Movement.',
+          'Visiting both the tomb and the monument closes the loop between his thought and the 1940 resolution.'
+        ]
+      },
+      {
+        heading: 'Visitor tips',
+        body: [
+          'Pair it with the monument, the resolution guide and the old-city circuit for a history-themed day.',
+          'See the one-day itinerary.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'As a public memorial it is generally open during daylight hours.',
+          'Exact hours can vary, so confirm locally if your timing is fixed.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'Entry is generally free.',
+          'There is usually no ticket for visiting the memorial grounds.'
+        ]
+      },
+      {
+        heading: 'Getting there',
         body: [
           'Reach it by ride-hailing or as part of an old-city route that also takes in the fort and mosque.',
           'Ask locally for the simplest gate or drop-off.'
+        ]
+      },
+      {
+        heading: 'Suggested route',
+        bullets: [
+          'Pair it with the monument, the resolution guide and the old-city circuit.',
+          'Visit the tomb as a reflective stop after Minar-e-Pakistan.',
+          'Continue into the Walled City via Delhi Gate.'
         ]
       },
       {
@@ -1835,10 +2285,32 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Combine with',
+        heading: 'Photo spots',
+        bullets: [
+          'The memorial in its quiet historic setting.',
+          'The link between Iqbal Park and the tomb that carries his name.',
+          'Old-city lanes nearby on an old-city route.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
         body: [
-          'Pair it with the monument, the resolution guide and the old-city circuit for a history-themed day.',
-          'See the one-day itinerary.'
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city keeps the historic area within easy reach.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'Travellers interested in Pakistan\'s intellectual history often include the tomb alongside the monument.',
+          'For current ratings and recent visitor notes, check Google Maps before you go.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'The tomb lies within the wider Lahore historic area, postal code 54000, Punjab, Pakistan.',
+          'Use a map app or ride-hailing; ask locally for the simplest gate or drop-off near the old city.'
         ]
       },
       {
@@ -1869,10 +2341,27 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'What: a walled garden square between Lahore Fort and Badshahi Mosque.',
+          'When: laid out in the early 19th century.',
+          'Where: Walled City of Lahore.',
+          'Entry: generally free; an open public garden.'
+        ]
+      },
+      {
+        heading: 'Explore the garden',
         body: [
           'Hazuri Bagh is a walled garden square between Lahore Fort and Badshahi Mosque.',
           'It is the green link that makes the fort-mosque-monument circuit walkable.'
+        ]
+      },
+      {
+        heading: 'Highlights',
+        bullets: [
+          'Symmetrical paths and lawns.',
+          'A central baradari (pavilion) is a focal point.',
+          'Gateways connect it to the fort and mosque.'
         ]
       },
       {
@@ -1883,32 +2372,82 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Layout',
-        bullets: [
-          'Symmetrical paths and lawns.',
-          'A central baradari (pavilion) is a focal point.',
-          'Gateways connect it to the fort and mosque.'
+        heading: 'Architecture & design',
+        body: [
+          'The bagh follows the classic charbagh plan: four quadrants separated by walkways or water channels.',
+          'The central baradari and aligned gateways make it the visual hinge of the Mughal core.'
         ]
       },
       {
-        heading: 'From the monument',
+        heading: 'Visitor tips',
+        body: [
+          'Use it as the shaded connector between the fort and the mosque.',
+          'Mornings and late afternoons are most comfortable.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'As a public garden it is generally open during daylight hours.',
+          'Exact hours can vary, so confirm locally if your timing is fixed.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'Entry is generally free.',
+          'There is usually no ticket for walking the garden.'
+        ]
+      },
+      {
+        heading: 'Getting there',
         body: [
           'Reach it via Badshahi Mosque; from the monument a short ride or walk through the old city brings you here.',
           'It is an easy pause between the bigger sights.'
         ]
       },
       {
-        heading: 'Best photo moment',
-        body: [
-          'The aligned view of the mosque gateway across the garden is a classic Lahore composition.',
-          'Early or late light flatters the sandstone.'
+        heading: 'Suggested route',
+        bullets: [
+          'Enter from Lahore Fort, cross Hazuri Bagh, and exit at the Badshahi Mosque.',
+          'Rest at the central baradari pavilion between the two monuments.',
+          'Return by ride-hailing or continue into the old city.'
         ]
       },
       {
-        heading: 'Combine with',
+        heading: 'Visitor notes',
+        bullets: [
+          'Keep to the pathways and the central pavilion area.',
+          'Carry water in summer; shade is limited at midday.'
+        ]
+      },
+      {
+        heading: 'Photo spots',
+        bullets: [
+          'The aligned view of the mosque gateway across the garden is a classic Lahore composition.',
+          'Early or late light flatters the sandstone.',
+          'The baradari pavilion centred between the two monuments.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
         body: [
-          'Pair it with Badshahi Mosque and Lahore Fort as one compact visit.',
-          'See the one-day itinerary.'
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city puts the garden and the two monuments within easy reach.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'Travellers often describe Hazuri Bagh as the pleasant green hinge between the fort and the mosque.',
+          'For current ratings and recent visitor notes, check Google Maps before you go.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'Hazuri Bagh lies between Lahore Fort and the Badshahi Mosque in the Walled City of Lahore, postal code 54000, Punjab, Pakistan.',
+          'Use a map app to reach the fort-mosque complex; the garden sits between them.'
         ]
       }
     ],
@@ -1933,10 +2472,25 @@ const TOPICS: Topic[] = [
     updated: VERIFIED,
     sections: [
       {
-        heading: 'Overview',
+        heading: 'At a glance',
+        bullets: [
+          'What: the historic core near Iqbal Park.',
+          'Where: full of gates, mosques, havelis and bazaars.',
+          'Entry: free to wander; individual monuments may have their own arrangement.'
+        ]
+      },
+      {
+        heading: 'Explore the old city',
         body: [
           'The Walled City of Lahore is the historic core near Iqbal Park, full of gates, mosques, havelis and bazaars.',
           'It extends the monument visit into everyday old-city life.'
+        ]
+      },
+      {
+        heading: 'Highlights',
+        body: [
+          'Wazir Khan Mosque is famed for its tilework; Shahi Hammam is a restored Mughal bathhouse.',
+          "These are a short walk from Delhi Gate and pair naturally with the monument."
         ]
       },
       {
@@ -1948,17 +2502,97 @@ const TOPICS: Topic[] = [
         ]
       },
       {
-        heading: 'Key sights',
+        heading: 'History',
         body: [
-          'Wazir Khan Mosque is famed for its tilework; Shahi Hammam is a restored Mughal bathhouse.',
-          "These are a short walk from Delhi Gate and pair naturally with the monument."
+          'The old city grew around the Mughal court and remains the historic heart of Lahore.',
+          'Its gates, mosques and havelis reflect centuries of layered urban life.'
         ]
       },
       {
-        heading: 'From the monument',
+        heading: 'Architecture & design',
+        body: [
+          'The district is known for Mughal tilework, carved havelis and covered bazaars.',
+          'Buildings like Wazir Khan Mosque and Shahi Hammam show the craft of the period.'
+        ]
+      },
+      {
+        heading: 'Cultural significance',
+        body: [
+          'The Walled City is a living historic district and is recognised on Pakistan\'s tentative UNESCO list.',
+          'It remains a working neighbourhood of markets, worship and daily life.'
+        ]
+      },
+      {
+        heading: 'Visitor tips',
+        body: [
+          'Start at Delhi Gate for the heritage trail.',
+          'Mornings are cooler and the lanes are less crowded.'
+        ]
+      },
+      {
+        heading: 'Opening hours',
+        body: [
+          'The old city is open at all hours as a living district; individual monuments keep their own posted hours.',
+          'Confirm specific sight hours on-site as they can change.'
+        ]
+      },
+      {
+        heading: 'Tickets & entry',
+        body: [
+          'Wandering the lanes is generally free; the mosques are free to enter.',
+          'Some restored monuments may have their own entry arrangement.'
+        ]
+      },
+      {
+        heading: 'Getting there',
         body: [
           'A ride-hailing cab or rickshaw to Delhi Gate is simplest; some visitors walk the old-city segment from the park.',
           'See the transport guides for routing.'
+        ]
+      },
+      {
+        heading: 'Suggested route',
+        bullets: [
+          'Enter through Delhi Gate and head to Wazir Khan Mosque.',
+          'Continue to Shahi Hammam and the surrounding bazaars.',
+          'Loop back via the food street off Shahi Mohalla.'
+        ]
+      },
+      {
+        heading: 'Visitor notes',
+        bullets: [
+          'Keep valuables secure; the bazaars are busy.',
+          'Dress modestly for the mosques and ask before photographing people.',
+          'A map app helps in the maze-like lanes.'
+        ]
+      },
+      {
+        heading: 'Photo spots',
+        bullets: [
+          'The tilework facade of Wazir Khan Mosque.',
+          'Narrow lanes with hanging crafts and signage.',
+          'Delhi Gate and the old-city skyline at golden hour.'
+        ]
+      },
+      {
+        heading: 'Where to stay',
+        body: [
+          'Lahore offers hotels and guesthouses across many budgets, concentrated near the Walled City, Mall Road and central districts.',
+          'Staying near the old city puts the gates and sights within walking or short-ride distance.'
+        ]
+      },
+      {
+        heading: 'Visitor reviews',
+        body: [
+          'The Walled City is frequently described by travellers as the most atmospheric part of Lahore.',
+          'For current ratings and recent visitor notes, check Google Maps before you go.'
+        ]
+      },
+      {
+        heading: 'Transport guide',
+        body: [
+          'The Walled City of Lahore, postal code 54000, Punjab, Pakistan, is a short distance from Minar-e-Pakistan.',
+          'Use a map app to reach Delhi Gate; ride-hailing can drop you at the gate for the heritage walk.'
         ]
       },
       {

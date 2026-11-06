@@ -25,6 +25,8 @@ const related = topic.related
   .filter((t): t is NonNullable<typeof t> => Boolean(t));
 ---
 
+<div class="ornament"></div>
+
 <header class="site-header">
   <div class="shell site-header-inner">
     <a class="brand" href="/" aria-label={`${DOMAIN} home`}>
@@ -45,7 +47,6 @@ const related = topic.related
 
 <section class="topic-hero">
   <div class="shell">
-    <div class="kicker">{topic.kicker}</div>
     <h1>{topic.h1}</h1>
     <p>{topic.lead}</p>
     <p class="verified-note">Last verified: {topic.updated} · Independent visitor guide, not affiliated with any authority.</p>

@@ -1,4 +1,5 @@
 ---
+import '../styles/global.css';
 import TopicPage from '../components/TopicPage.astro';
 import { getTopic, topicSlugs, TOPIC_GROUPS } from '../data/topics';
 import { DOMAIN, OG_IMAGE } from '../data/site';
@@ -73,6 +74,9 @@ const faqLd = {
   <meta name="theme-color" content="#8e3b24" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" />
+  <link rel="icon" href="/favicon-16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/favicon-180.png" />
   <script type="application/ld+json" set:html={JSON.stringify(webPageLd)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
